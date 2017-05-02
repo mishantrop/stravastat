@@ -1,0 +1,16 @@
+{
+    "name": "mishantrop/stravastat",
+    "description": "Analyzes a users statistics in Strava",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "mishantrop",
+            "email": "quasi-art@ya.ru"
+        }
+    ],
+    "require": {
+		"basvandorst/StravaPHP": "1.0.2",
+        "monolog/monolog": "^1.22"
+    }
+}
