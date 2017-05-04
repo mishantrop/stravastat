@@ -18,7 +18,7 @@ try {
     $client = new Client($service);
 	
 	$loader = new Twig_Loader_Filesystem($_SERVER['DOCUMENT_ROOT'].'/assets/templates');
-	$twig = new Twig_Environment($loader, [
+	$stravastat->parser = new Twig_Environment($loader, [
 	    //'cache' => $_SERVER['DOCUMENT_ROOT'].'/assets/templates/cache',
 		'cache' => false,
 	]);
@@ -34,6 +34,11 @@ try {
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
 	$clubActivities = $client->getClubActivities($preset['CLUB_ID'], NULL, 200);
+	foreach ($clubActivities as $idx => $clubActivity) {
+		if ($clubActivity['workout_type'] != 10) {
+			unset($clubActivities[$idx]);
+		}
+	}
 	
 	// Клуб
 	$output .= '<h2>Клуб</h2>';
@@ -49,9 +54,8 @@ try {
 	foreach ($clubActivities as $clubActivity) {
 		if (!isset($athletesDistances[$clubActivity['athlete']['id']])) {
 			$athletesDistances[$clubActivity['athlete']['id']] = 0;
-		} else {
-			$athletesDistances[$clubActivity['athlete']['id']] += round((float)$clubActivity['distance'], 2);
 		}
+		$athletesDistances[$clubActivity['athlete']['id']] += round((float)$clubActivity['distance'], 2);
 	}
 	$output .= '<pre>'.print_r($athletesDistances, true).'</pre>';
 	$maxDistance = 0;
@@ -65,14 +69,15 @@ try {
 	}
 	if ($athleteId > 0) {
 		foreach ($clubMembers as $clubMember) {
-			if ($clubMember['id'] == $athleteId) {
+			if ($clubMember['id'] == $maxDistanceAthleteId) {
 				$maxDistanceAthlete = $clubMember;
+				break;
 			}
 		}
 	}
 	$output .= '<h2>Рекорд по общей дистанции</h2>';
 	$output .= '<p>Общая дистанция: '.$stravastat->converDistance($maxDistance).' км</p>';
-	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$clubMember['id'].'">'.$clubMember['firstname'].' '.$clubMember['lastname'].'</a></p>';
+	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$maxDistanceAthlete['id'].'">'.$maxDistanceAthlete['firstname'].' '.$maxDistanceAthlete['lastname'].'</a></p>';
 	
 	// Рекорд скорости
 	$maxSpeed = 0;
@@ -137,7 +142,7 @@ try {
 	$output .= '<pre>'.print_r($clubActivities, true).'</pre>';
 	
 	
-	echo $twig->render('layout.tpl', ['output' => $output]);
+	echo $stravastat->parser->render('layout.tpl', ['output' => $output]);
 	
 } catch(Exception $e) {
     print $e->getMessage();

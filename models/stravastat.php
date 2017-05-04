@@ -1,5 +1,7 @@
 <?php
 class StravaStat {
+	public $parser = null;
+	
 	public function convertSpeed($speed) {
 		$speed = round((float)$speed, 2);
 		return round($speed / 0.2777777777777778, 2);
