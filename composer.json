@@ -11,6 +11,7 @@
     ],
     "require": {
 		"basvandorst/StravaPHP": "1.0.2",
-        "monolog/monolog": "^1.22"
+        "monolog/monolog": "^1.22",
+        "twig/twig": "^2.0"
     }
 }

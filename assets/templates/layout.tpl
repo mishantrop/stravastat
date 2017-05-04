@@ -12,7 +12,7 @@
     <link href="assets/css/main.min.css?v=05052009042017" rel="stylesheet" />
 </head>
 <body>
-    {$output}
+    {{output|raw}}
 	
 	<footer class="footer">
 		<div>
