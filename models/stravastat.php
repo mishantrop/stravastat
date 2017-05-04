@@ -7,7 +7,7 @@ class StravaStat {
 		return round($speed / 0.2777777777777778, 2);
 	}
 	
-	public function converDistance($distance) {
+	public function convertDistance($distance) {
 		$distance = round((float)$distance, 2);
 		return round($distance / 1000, 2);
 	}

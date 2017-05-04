@@ -24,12 +24,6 @@ try {
 	]);
 
 	$output = '';
-
-    /*$athlete = $client->getAthlete();
-    print_r($athlete);*/
-
-   	//$activities = $client->getAthleteActivities();
-    //print_r($activities);
 	
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
@@ -57,7 +51,6 @@ try {
 		}
 		$athletesDistances[$clubActivity['athlete']['id']] += round((float)$clubActivity['distance'], 2);
 	}
-	$output .= '<pre>'.print_r($athletesDistances, true).'</pre>';
 	$maxDistance = 0;
 	$maxDistanceAthleteId = null;
 	$maxDistanceAthlete = null;
@@ -76,7 +69,20 @@ try {
 		}
 	}
 	$output .= '<h2>Рекорд по общей дистанции</h2>';
-	$output .= '<p>Общая дистанция: '.$stravastat->converDistance($maxDistance).' км</p>';
+	$output .= '<p>Общая дистанция: '.$stravastat->convertDistance($maxDistance).' км</p>';
+	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$maxDistanceAthlete['id'].'">'.$maxDistanceAthlete['firstname'].' '.$maxDistanceAthlete['lastname'].'</a></p>';
+	
+	// Рекорд по самому длинному заезду
+	$maxDistance = 0;
+	$maxDistanceAthlete = null;
+	foreach ($clubActivities as $clubActivity) {
+		if ((float)$clubActivity['distance'] > $maxDistance) {
+			$maxDistance = round((float)$clubActivity['distance'], 2);
+			$maxDistanceAthlete = $clubActivity['athlete'];
+		}
+	}
+	$output .= '<h2>Самый длинный заезд</h2>';
+	$output .= '<p>Дистанция: '.$stravastat->convertDistance($maxDistance).' км</p>';
 	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$maxDistanceAthlete['id'].'">'.$maxDistanceAthlete['firstname'].' '.$maxDistanceAthlete['lastname'].'</a></p>';
 	
 	// Рекорд скорости
@@ -100,13 +106,6 @@ try {
 		<img src="'.$clubMember['profile'].'" style="display: block; border-radius: 50%; width: 50px; height: 50px;" />
 		<a href="https://www.strava.com/athletes/'.$clubMember['id'].'">'.$clubMember['firstname'].' '.$clubMember['lastname'].'</a>
 		</li>';
-
-		/*$activities = $client->getAthleteActivities();
-		echo '<ul>';
-		foreach ($activities as $activity) {
-			echo '<li>'.$activity['name'].'</li>';
-		}
-		echo '</ul>';*/
 	}
 	$output .= '</ul>';
     
@@ -125,12 +124,12 @@ try {
 	</thead>';
 	foreach ($clubActivities as $clubActivity) {
 		$output .= '<tr>
-			<td><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.date('H:i:s: d.m.Y', strtotime($clubActivity['start_date'])).'</a></td>
+			<td data-value="'.strtotime($clubActivity['start_date']).'"><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.date('d.m.Y H:i:s', strtotime($clubActivity['start_date'])).'</a></td>
 			<td><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].'</a></td>
-			<td>'.$stravastat->converDistance($clubActivity['distance']).'</td>
+			<td>'.$stravastat->convertDistance($clubActivity['distance']).'</td>
 			<td>'.$stravastat->convertSpeed($clubActivity['max_speed']).'</td>
 			<td>'.$stravastat->convertSpeed($clubActivity['average_speed']).'</td>
-			<td>'.$stravastat->convertTime($clubActivity['moving_time']).'</td>
+			<td data-value="'.strtotime($clubActivity['moving_time']).'">'.$stravastat->convertTime($clubActivity['moving_time']).'</td>
 		</tr>';
 	}
 	$output .= '</table>';
