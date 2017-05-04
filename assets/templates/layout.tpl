@@ -26,5 +26,6 @@
 	</footer>
 </body>
 <script src="node_modules/jquery/dist/jquery.min.js"></script>
+<script src="node_modules/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
 <script src="assets/js/main.min.js"></script>
 </html>

@@ -3,4 +3,6 @@ $(function() {
 		var spoiler = $(this).parent();
 		$(spoiler).find('.spoiler__content').toggle();
 	});
+	
+	$('#table-last-activities').tablesorter();
 });
