@@ -39,4 +39,8 @@ class StravaStat {
 	
 	    return $output;
 	}
+
+	public function matchToArea($activity) {
+		return true;
+	}
 }

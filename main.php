@@ -32,6 +32,9 @@ try {
 		if ($clubActivity['workout_type'] != 10) {
 			unset($clubActivities[$idx]);
 		}
+		if (!$stravastat->matchToArea($clubActivity)) {
+			unset($clubActivities[$idx]);
+		}
 	}
 	
 	// Клуб
