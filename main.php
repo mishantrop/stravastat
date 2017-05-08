@@ -1,4 +1,17 @@
 <?php
+$time_start = round(microtime(true), 4);
+define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
+switch (ENVIRONMENT)
+{
+	case 'development':
+		error_reporting(-1);
+		ini_set('display_errors', 1);
+	break;
+	case 'production':
+
+	break;
+}
+
 include 'vendor/autoload.php';
 include 'access.php';
 include 'preset.php';
@@ -119,54 +132,62 @@ try {
 		'units' => 'км/ч',
 		'athlete' => $maxSpeedAthlete,
 	]);
-	
-	$pedestalOutput = $stravastat->parser->render('pedestal/pedestalWrapper.tpl', ['output' => $pedestalOutput]);
-	
-	$output .= $pedestalOutput;
+	$output = $stravastat->parser->render('pedestal/pedestalWrapper.tpl', ['output' => $pedestalOutput]);
 	
 	// Участники
-	$output .= '<h2>Участники ('.count($clubMembers).')</h2>';
-	$output .= '<ul style="display: block;">';
+	$athletesOutput = '';
 	foreach ($clubMembers as $clubMember) {
-		$output .= $stravastat->parser->render('athletes/athleteItem.tpl', [
+		$athletesOutput .= $stravastat->parser->render('athletes/athleteItem.tpl', [
 			'athlete' => $clubMember,
 		]);
 	}
-	$output .= '</ul>';
+	$output .= $stravastat->parser->render('athletes/athletesWrapper.tpl', [
+		'athletesCount' => count($clubMembers),
+		'output' => $athletesOutput
+	]);
     
 	// Последние тренировки клуба
-	$output .= '<h2>Последние тренировки клуба ('.count($clubActivities).')</h2>';
-	$output .= '<table class="report-table" id="table-last-activities">';
-	$output .= '<thead>';
-	$output .= '<tr>
-		<th>Дата</th>
-		<th>Название</th>
-		<th>Дистанция</th>
-		<th>Макс. скорость</th>
-		<th>Ср скорость</th>
-		<th>Чистое время</th>
-	</tr>
-	</thead>';
+	$activitiesOutput = '';
 	foreach ($clubActivities as $clubActivity) {
-		$output .= '<tr>
-			<td data-value="'.strtotime($clubActivity['start_date']).'"><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.date('d.m.Y H:i:s', strtotime($clubActivity['start_date'])).'</a></td>
-			<td><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].'</a></td>
-			<td>'.$stravastat->convertDistance($clubActivity['distance']).'</td>
-			<td>'.$stravastat->convertSpeed($clubActivity['max_speed']).'</td>
-			<td>'.$stravastat->convertSpeed($clubActivity['average_speed']).'</td>
-			<td data-value="'.strtotime($clubActivity['moving_time']).'">'.$stravastat->convertTime($clubActivity['moving_time']).'</td>
-		</tr>';
+		$activitiesOutput .= $stravastat->parser->render('activities/activitiesItem.tpl', [
+			'startDateTimestamp' => strtotime($clubActivity['start_date']),
+			'startDateDate' => date('d.m.Y H:i:s', strtotime($clubActivity['start_date'])),
+			'movingTimeTimestamp' => strtotime($clubActivity['moving_time']),
+			'stravastat' => $stravastat,
+			'activity' => $clubActivity,
+		]);
 	}
-	$output .= '</table>';
+	$output .= $stravastat->parser->render('activities/activitiesWrapper.tpl', [
+		'activitiesCount' => count($clubActivities),
+		'output' => $activitiesOutput
+	]);
     
 	// Исходные данные
 	$output .= '<h2>Исходные данные</h2>';
-	$output .= '<pre>'.print_r($club, true).'</pre>';
-	$output .= '<pre>'.print_r($clubMembers, true).'</pre>';
-	$output .= '<pre>'.print_r($clubActivities, true).'</pre>';
-	
+	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+		'title' => 'Club',
+		'content' => print_r($club, true)
+	]);
+	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+		'title' => 'Athletes',
+		'content' => print_r($clubMembers, true)
+	]);
+	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+		'title' => 'Activities',
+		'content' => print_r($clubActivities, true)
+	]);
+
+	$time_end = round(microtime(true), 4);
+	$execution_time = ($time_end - $time_start);
+
 	// Main layout
-	echo $stravastat->parser->render('layout.tpl', ['output' => $output]);
+	echo $stravastat->parser->render('layoutMain.tpl', [
+		'output' => $output,
+		't' => $execution_time,
+		'assets_version' => time(),
+	]);
 } catch(Exception $e) {
     print $e->getMessage();
 }
+
+

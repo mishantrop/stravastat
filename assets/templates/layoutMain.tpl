@@ -9,7 +9,7 @@
     <meta name="msapplication-navbutton-color" content="#4279b8" />
     <meta name="apple-mobile-web-app-status-bar-style" content="#4279b8" />
     <link rel="icon" href="/favicon.ico" />
-    <link href="assets/css/main.min.css?v=05052009042017" rel="stylesheet" />
+    <link href="assets/css/main.min.css?v={{ assets_version }}" rel="stylesheet" />
 </head>
 <body>
 	<div class="container">
