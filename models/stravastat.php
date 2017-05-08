@@ -1,6 +1,11 @@
 <?php
 class StravaStat {
 	public $parser = null;
+	public $area = null;
+	
+	public function __construct() {
+
+	}
 	
 	public function convertSpeed($speed) {
 		$speed = round((float)$speed, 2);
@@ -41,6 +46,8 @@ class StravaStat {
 	}
 
 	public function matchToArea($activity) {
-		return true;
+		$lat = (float)$activity['start_latlng'][0];
+		$lng = (float)$activity['start_latlng'][1];
+		return $this->area->matchToArea($lat, $lng);
 	}
 }

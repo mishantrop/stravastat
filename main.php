@@ -2,6 +2,8 @@
 include 'vendor/autoload.php';
 include 'access.php';
 include 'preset.php';
+include 'models/activity.php';
+include 'models/area.php';
 include 'models/stravastat.php';
 
 //use Pest;
@@ -22,29 +24,32 @@ try {
 	    //'cache' => $_SERVER['DOCUMENT_ROOT'].'/assets/templates/cache',
 		'cache' => false,
 	]);
+	
+	// Restrict to Vologda Oblast
+	$stravastat->area = new Area();
+	$stravastat->area->setStartLat(58.429187);
+	$stravastat->area->setStartLng(34.652482);
+	$stravastat->area->setEndLat(61.639137);
+	$stravastat->area->setEndLng(47.290977);
 
 	$output = '';
 	
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
 	$clubActivities = $client->getClubActivities($preset['CLUB_ID'], NULL, 200);
+	$ignoreActivities = [];
 	foreach ($clubActivities as $idx => $clubActivity) {
 		if ($clubActivity['workout_type'] != 10) {
 			unset($clubActivities[$idx]);
 		}
 		if (!$stravastat->matchToArea($clubActivity)) {
+			$output .= '<p>Activity <a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].'</a> does not match</p>';
 			unset($clubActivities[$idx]);
+			$ignoreActivities = clone $clubActivities[$idx];
 		}
 	}
 	
-	// Клуб
-	$output .= '<h2>Клуб</h2>';
-	$output .= '<a href="https://www.strava.com/clubs/'.$club['id'].'" style="display: block;">
-		<img src="'.$club['profile'].'" style="display: block; border-radius: 50%;" />
-		<div>'.$club['name'].'</div>
-		<div>'.$club['description'].'</div>
-		<div>'.$club['country'].', '.$club['state'].', '.$club['city'].'</div>
-	</a>';
+	$output .= $stravastat->parser->render('clubs/club-bage.tpl', ['club' => $club]);
 	
 	// Рекорд по суммарной дистанции
 	$athletesDistances = [];
@@ -71,9 +76,15 @@ try {
 			}
 		}
 	}
-	$output .= '<h2>Рекорд по общей дистанции</h2>';
-	$output .= '<p>Общая дистанция: '.$stravastat->convertDistance($maxDistance).' км</p>';
-	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$maxDistanceAthlete['id'].'">'.$maxDistanceAthlete['firstname'].' '.$maxDistanceAthlete['lastname'].'</a></p>';
+
+	$pedestalOutput = '';
+	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
+		'title' => 'Рекорд по общей дистанции',
+		'label' => 'Общая дистанция',
+		'value' => $stravastat->convertDistance($maxDistance),
+		'units' => 'км',
+		'athlete' => $maxDistanceAthlete,
+	]);
 	
 	// Рекорд по самому длинному заезду
 	$maxDistance = 0;
@@ -84,9 +95,13 @@ try {
 			$maxDistanceAthlete = $clubActivity['athlete'];
 		}
 	}
-	$output .= '<h2>Самый длинный заезд</h2>';
-	$output .= '<p>Дистанция: '.$stravastat->convertDistance($maxDistance).' км</p>';
-	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$maxDistanceAthlete['id'].'">'.$maxDistanceAthlete['firstname'].' '.$maxDistanceAthlete['lastname'].'</a></p>';
+	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
+		'title' => 'Самый длинный заезд',
+		'label' => 'Дистанция',
+		'value' => $stravastat->convertDistance($maxDistance),
+		'units' => 'км',
+		'athlete' => $maxDistanceAthlete,
+	]);
 	
 	// Рекорд скорости
 	$maxSpeed = 0;
@@ -97,18 +112,25 @@ try {
 			$maxSpeedAthlete = $clubActivity['athlete'];
 		}
 	}
-	$output .= '<h2>Рекорд скорости</h2>';
-	$output .= '<p>Скорость: '.$stravastat->convertSpeed($maxSpeed).' км/ч</p>';
-	$output .= '<p>Человек: <a href="https://www.strava.com/athletes/'.$maxSpeedAthlete['id'].'">'.$maxSpeedAthlete['firstname'].' '.$maxSpeedAthlete['lastname'].'</a></p>';
+	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
+		'title' => 'Рекорд скорости',
+		'label' => 'Скорость',
+		'value' => $stravastat->convertSpeed($maxSpeed),
+		'units' => 'км/ч',
+		'athlete' => $maxSpeedAthlete,
+	]);
+	
+	$pedestalOutput = $stravastat->parser->render('pedestal/pedestalWrapper.tpl', ['output' => $pedestalOutput]);
+	
+	$output .= $pedestalOutput;
 	
 	// Участники
 	$output .= '<h2>Участники ('.count($clubMembers).')</h2>';
 	$output .= '<ul style="display: block;">';
 	foreach ($clubMembers as $clubMember) {
-		$output .= '<li style="display: block; list-style: none;">
-		<img src="'.$clubMember['profile'].'" style="display: block; border-radius: 50%; width: 50px; height: 50px;" />
-		<a href="https://www.strava.com/athletes/'.$clubMember['id'].'">'.$clubMember['firstname'].' '.$clubMember['lastname'].'</a>
-		</li>';
+		$output .= $stravastat->parser->render('athletes/athleteItem.tpl', [
+			'athlete' => $clubMember,
+		]);
 	}
 	$output .= '</ul>';
     
@@ -143,9 +165,8 @@ try {
 	$output .= '<pre>'.print_r($clubMembers, true).'</pre>';
 	$output .= '<pre>'.print_r($clubActivities, true).'</pre>';
 	
-	
+	// Main layout
 	echo $stravastat->parser->render('layout.tpl', ['output' => $output]);
-	
 } catch(Exception $e) {
     print $e->getMessage();
 }

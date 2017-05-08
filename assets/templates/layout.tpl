@@ -12,18 +12,28 @@
     <link href="assets/css/main.min.css?v=05052009042017" rel="stylesheet" />
 </head>
 <body>
-    {{output|raw}}
+	<div class="container">
+		<header>
+			<h1>StravaStat</h1>
+		</header>
+	</div>
 	
-	<footer class="footer">
-		<div>
-			<a href="https://github.com/mishantrop/stravastat" target="_blank" rel="noopener">
-				https://github.com/mishantrop/stravastat
-			</a>
-		</div>
-		<div>
-			2017
-		</div>
-	</footer>
+	<div class="container">
+    	{{output|raw}}
+	</div>
+	
+	<div class="container">
+		<footer class="footer">
+			<div>
+				<a href="https://github.com/mishantrop/stravastat" target="_blank" rel="noopener">
+					https://github.com/mishantrop/stravastat
+				</a>
+			</div>
+			<div>
+				2017
+			</div>
+		</footer>
+	</div>
 </body>
 <script src="node_modules/jquery/dist/jquery.min.js"></script>
 <script src="node_modules/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
