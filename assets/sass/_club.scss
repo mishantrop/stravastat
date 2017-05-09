@@ -1,5 +1,5 @@
 .club-bage {
-	display: flex;
+	display: block;
     padding: 1rem;
     overflow: hidden;
     &__description {
@@ -13,14 +13,12 @@
     &__image {
         border-radius: 50%;
         display: block;
-		float: left;
     }
 	&__info {
-		float: left;
 		padding: 0 0 0 2rem;
 	}
 	&__link {
-		display: block;
+		display: flex;
 	    overflow: hidden;
 		text-decoration: none;
 	}

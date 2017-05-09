@@ -1,7 +1,9 @@
 assets/images/test
 log/*
+main_files
 node_modules
 vendor
 access.php
+main.html
 preset.php
 test.php

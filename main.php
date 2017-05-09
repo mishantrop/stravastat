@@ -193,6 +193,9 @@ try {
 	// Участники
 	$athletesOutput = '';
 	foreach ($clubMembers as $clubMember) {
+		if ($clubMember['profile'] == 'avatar/athlete/large.png') {
+			$clubMember['profile'] = 'assets/images/photo.jpg';
+		}
 		$athletesOutput .= $stravastat->parser->render('athletes/athleteItem.tpl', [
 			'athlete' => $clubMember,
 		]);
@@ -204,6 +207,7 @@ try {
     
 	// Output last club activities
 	$activitiesOutput = '';
+	$activitiesJsOutput = '';
 	foreach ($clubActivities as $clubActivity) {
 		$activitiesOutput .= $stravastat->parser->render('activities/activitiesItem.tpl', [
 			'startDateTimestamp' => strtotime($clubActivity['start_date']),
@@ -212,11 +216,13 @@ try {
 			'stravastat' => $stravastat,
 			'activity' => $clubActivity,
 		]);
+		$activitiesJsOutput .= '{"title":"'.htmlentities($clubActivity['name']).'", "lat": "'.$clubActivity['start_latlng'][0].'", "lng": "'.$clubActivity['start_latlng'][1].'"},';
 	}
 	$output .= $stravastat->parser->render('activities/activitiesWrapper.tpl', [
 		'activitiesCount' => count($clubActivities),
 		'output' => $activitiesOutput
 	]);
+	$output .= '<script>window.mapActivities = ['.$activitiesJsOutput.'];</script>';
     
 	// Raw Responses
 	$output .= '<h2>Исходные данные</h2>';

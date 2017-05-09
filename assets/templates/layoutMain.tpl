@@ -24,6 +24,16 @@
 	</div>
 	
 	<div class="container">
+		
+		<div class="activities-map-wrapper">
+			<h2 class="activities-map__header">Карта</h2>
+			<div class="activities-map" id="activities-map" data-lat="60" data-lng="40">
+				
+			</div>
+		</div>
+	</div>
+	
+	<div class="container">
 		<footer class="footer">
 			<div>
 				<a href="https://github.com/mishantrop/stravastat" target="_blank" rel="noopener">
@@ -41,5 +51,8 @@
 </body>
 <script src="node_modules/jquery/dist/jquery.min.js"></script>
 <script src="node_modules/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
+<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuDbJkYFLKzqcLkAAvp9sYLs_vRSzRAb0"></script>
+<!--script src="https://maps.googleapis.com/maps/api/js"></script-->
 <script src="assets/js/main.min.js"></script>
 </html>
