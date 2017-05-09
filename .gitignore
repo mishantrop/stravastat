@@ -2,6 +2,7 @@ assets/images/test
 log/*
 main_files
 node_modules
+reports/report*.html
 vendor
 access.php
 main.html

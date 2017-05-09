@@ -272,11 +272,14 @@ try {
 	$execution_time = ($time_end - $time_start);
 
 	// Main layout
-	echo $stravastat->parser->render('layoutMain.tpl', [
+	$output = $stravastat->parser->render('layoutMain.tpl', [
 		'output' => $output,
 		't' => $execution_time,
 		'assets_version' => time(),
 	]);
+	echo $output;
+	
+	file_put_contents($_SERVER['DOCUMENT_ROOT'].'/reports/report_'.$preset['CLUB_ID'].'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
 } catch(Exception $e) {
     print $e->getMessage();
 }
