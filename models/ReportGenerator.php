@@ -10,31 +10,30 @@ class ReportGenerator {
 		$this->timestamp = $timestamp;
 	}
 	
-	public function getLastWeekRange() {
+	public function getLastWeekRange(): array {
 		$d = time() - 86400*7;
 		$start_week = strtotime('last sunday midnight',$d) + 86400;
 		$end_week = strtotime('next saturday',$d) + 86400 + 86400 - 1;
 		return [$start_week, $end_week];
 	}
 	
-	public function getCurrentWeekRange() {
-		$d = time();
-		$start_week = strtotime('last sunday midnight', $d) + 86400;
+	public function getCurrentWeekRange(): array {
+		$start_week = strtotime('last sunday midnight', time()) + 86400;
 		$end_week = $this->timestamp;
 		return [$start_week, $end_week];
 	}
 	
-	public function getWeekRange(int $timestamp) {
+	public function getWeekRange(int $timestamp): array {
 		$start_week = strtotime('last sunday midnight', $timestamp) + 86400;
 		$end_week = strtotime('next saturday', $timestamp) + 86400 + 86400 - 1;
 		return [$start_week, $end_week];
 	}
 	
-	public function getWeekRangeByDate(string $date) {
+	public function getWeekRangeByDate(string $date): array {
 		return $this->getWeekRange(strtotime($date));
 	}
 	
-	public function inRange(int $timestamp, array $range) {
+	public function inRange(int $timestamp, array $range): bool {
 		return ($timestamp >= $range[0] && $timestamp <= $range[1]);
 	}
 }
