@@ -279,6 +279,7 @@ try {
 	]);
 	echo $output;
 	
+	$output = str_replace('<base href="/" />', '<base href="https://quasi-art.ru/stravastat/" />', $output);
 	file_put_contents($_SERVER['DOCUMENT_ROOT'].'/reports/report_'.$preset['CLUB_ID'].'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
 } catch(Exception $e) {
     print $e->getMessage();
