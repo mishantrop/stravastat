@@ -1,4 +1,8 @@
-<li style="display: block; list-style: none;">
-	<img src="{{ athlete['profile'] }}" style="display: block; border-radius: 50%; width: 50px; height: 50px;" />
-	<a href="https://www.strava.com/athletes/{{ athlete['id'] }}">{{ athlete['athlete'] }} {{ athlete['lastname'] }}</a>
-</li>
+<div class="athletes-item">
+	<a href="https://www.strava.com/athletes/{{ athlete['id'] }}" class="athletes-item__image-link">
+		<img src="{{ athlete['profile'] }}" class="athletes-item__image" />
+	</a>
+	<a href="https://www.strava.com/athletes/{{ athlete['id'] }}" class="athletes-item__username-link">
+		{{ athlete['firstname'] }} {{ athlete['lastname'] }}
+	</a>
+</div>

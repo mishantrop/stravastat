@@ -1,9 +1,11 @@
 <div class="club-bage">
-	<h2 class="club-bage__header">Клуб</h2>
-	<a href="https://www.strava.com/clubs/{{ club['id'] }}" style="display: block;">
-		<img src="{{ club['profile'] }}" style="display: block; border-radius: 50%;"  class="club-bage__image" />
-		<div class="club-bage__name">{{ club['name'] }}</div>
-		<div class="club-bage__description">{{ club['description'] }}</div>
-		<div class="club-bage__location">{{ club['country'] }}, {{ club['state'] }}, {{ club['city'] }}</div>
+	<h2 class="club-bage__header">Club</h2>
+	<a href="https://www.strava.com/clubs/{{ club['id'] }}" class="club-bage__link">
+		<img src="{{ club['profile'] }}" class="club-bage__image" />
+		<div class="club-bage__info">
+			<div class="club-bage__name">{{ club['name'] }}</div>
+			<div class="club-bage__description">{{ club['description'] }}</div>
+			<div class="club-bage__location">{{ club['country'] }}, {{ club['state'] }}, {{ club['city'] }}</div>
+		</div>
 	</a>
 </div>

@@ -1,4 +1,5 @@
 # StravaStat #
 
 # Roadmap #
-* Code
+* Show activities on map (only start points)
+* Generate images

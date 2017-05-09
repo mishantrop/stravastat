@@ -11,10 +11,11 @@
     <link rel="icon" href="/favicon.ico" />
     <link href="assets/css/main.min.css?v={{ assets_version }}" rel="stylesheet" />
 </head>
-<body>
+<body class="body">
 	<div class="container">
-		<header>
-			<h1>StravaStat</h1>
+		<header class="header">
+			<h1 class="header__header">StravaStat</h1>
+			<div class="header__subheader">If you rides not on Strava it didn't happen</div>
 		</header>
 	</div>
 	
@@ -31,6 +32,9 @@
 			</div>
 			<div>
 				2017
+			</div>
+			<div>
+				{{ t }} s
 			</div>
 		</footer>
 	</div>

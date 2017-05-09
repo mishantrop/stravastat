@@ -22,7 +22,7 @@
     	<form action="main.php" method="post">
 			<div class="form-group">
 				<label>Club</label>
-				<select>
+				<select name="club">
 					<option value="198259" selected>ВелоСокол</option>
 					<option value="87309">ВелоВологда</option>
 				</select>

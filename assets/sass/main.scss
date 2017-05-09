@@ -1,23 +1,15 @@
 @import "_grid.scss";
-@import "_club.scss";
-@import "_report.scss";
-@import "_spoiler.scss";
 
+html {
+	font-size: 16px;
+}
 body {
     font-family: Arial;
 }
 
-.report__avatar {
-    border-radius: 50%;
-    float: left;
-    height: 50px;
-    width: 50px;
-}
-
-.report__link {
-    color: #c3008f;
-    float: left;
-    margin: 0 0 0 10px;
-    text-decoration: none;
-}
-
+@import "_athletes.scss";
+@import "_club.scss";
+@import "_header.scss";
+@import "_pedestal.scss";
+@import "_report.scss";
+@import "_spoiler.scss";

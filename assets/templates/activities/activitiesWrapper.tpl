@@ -1,4 +1,4 @@
-<h2>Последние тренировки клуба ({{ activitiesCount }})</h2>
+<h2>Тренировки клуба ({{ activitiesCount }}) за указанный период</h2>
 <table class="report-table" id="table-last-activities">
 	<thead>
 		<tr>

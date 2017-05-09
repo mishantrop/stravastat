@@ -1,4 +1,4 @@
-<h2>Участники ({{ athletesCount }})</h2>
-<ul style="display: block;">
+<div class="athletes">
+	<h2 class="athletes__header">Участники ({{ athletesCount }})</h2>
 	{{ output|raw }}
-</ul>
+</div>

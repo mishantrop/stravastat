@@ -48,13 +48,27 @@ try {
 	
 	$stravastat->reportGenerator = new ReportGenerator(time());
 
+	$period = $stravastat->reportGenerator->getLastWeekRange();
+	if (isset($_POST['start']) && isset($_POST['end'])) {
+		$period = [
+			strtotime($_POST['start']),
+			strtotime($_POST['end']) + 86400 - 1
+		];
+	}
+	
+	if (isset($_POST['club'])) {
+		$preset['CLUB_ID'] = (int)$_POST['club'];
+	}
+		
 	$output = '';
+	
+	
 	
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
 	
 	$clubActivities = [];
-	for ($i = 1; $i <= 3; $i++) {
+	for ($i = 1; $i <= 10; $i++) {
 		try {
 			$activities = $client->getClubActivities($preset['CLUB_ID'], $i, 200);
 		} catch (Pest_BadRequest $e) {
@@ -74,20 +88,35 @@ try {
 		}
 	}
 	
-	
-	$ignoreActivities = [];
+	$ignoredActivitiesByTime = [];
+	$ignoredActivitiesByWorkout = [];
+	$ignoredActivitiesByArea = [];
 	foreach ($clubActivities as $idx => $clubActivity) {
+		// Filter by type (bicycles only!)
 		if ($clubActivity['workout_type'] != 10) {
+			$ignoredActivitiesByWorkout[] = &$clubActivities[$idx];
 			unset($clubActivities[$idx]);
+			continue;
 		}
-		if (!$stravastat->matchToArea($clubActivity)) {
-			$output .= '<p>Activity <a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].'</a> does not match</p>';
+		// Filter by period
+		if (!$stravastat->reportGenerator->inRange(strtotime($clubActivity['start_date']), $period)) {
+			//$output .= '<p><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].' ('.date('H:i d.m.Y', strtotime($clubActivity['start_date'])).')</a> does not match period</p>';
+			$ignoredActivitiesByTime[] = &$clubActivities[$idx];
 			unset($clubActivities[$idx]);
-			$ignoreActivities = clone $clubActivities[$idx];
+			continue;
+		}
+		// Filter by area
+		if (!$stravastat->matchToArea($clubActivity)) {
+			//$output .= '<p>Activity <a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].'</a> does not match</p>';
+			$ignoredActivitiesByArea[] = &$clubActivities[$idx];
+			unset($clubActivities[$idx]);
+			continue;
 		}
 	}
 	
 	$output .= $stravastat->parser->render('clubs/club-bage.tpl', ['club' => $club]);
+	
+	$output .= '<h2>Period: '.date('H:i d.m.Y', $period[0]).' - '.date('H:i d.m.Y', $period[1]).'</h2>';
 	
 	// Рекорд по суммарной дистанции
 	$athletesDistances = [];
@@ -100,6 +129,7 @@ try {
 	$maxDistance = 0;
 	$maxDistanceAthleteId = null;
 	$maxDistanceAthlete = null;
+	$athleteId = 0;
 	foreach ($athletesDistances as $athleteId => $distanceSum) {
 		if ((float)$distanceSum > (float)$maxDistance) {
 			$maxDistance = round((float)$distanceSum, 2);
@@ -157,8 +187,9 @@ try {
 		'units' => 'км/ч',
 		'athlete' => $maxSpeedAthlete,
 	]);
+	// Pedestal
 	$output .= $stravastat->parser->render('pedestal/pedestalWrapper.tpl', ['output' => $pedestalOutput]);
-	
+
 	// Участники
 	$athletesOutput = '';
 	foreach ($clubMembers as $clubMember) {
@@ -171,7 +202,7 @@ try {
 		'output' => $athletesOutput
 	]);
     
-	// Последние тренировки клуба
+	// Output last club activities
 	$activitiesOutput = '';
 	foreach ($clubActivities as $clubActivity) {
 		$activitiesOutput .= $stravastat->parser->render('activities/activitiesItem.tpl', [
@@ -187,19 +218,31 @@ try {
 		'output' => $activitiesOutput
 	]);
     
-	// Исходные данные
+	// Raw Responses
 	$output .= '<h2>Исходные данные</h2>';
 	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
 		'title' => 'Club',
-		'content' => print_r($club, true)
+		'content' => '<pre>'.print_r($club, true).'</pre>'
 	]);
 	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
 		'title' => 'Athletes',
-		'content' => print_r($clubMembers, true)
+		'content' => '<pre>'.print_r($clubMembers, true).'</pre>'
 	]);
 	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
 		'title' => 'Activities',
-		'content' => print_r($clubActivities, true)
+		'content' => '<pre>'.print_r($clubActivities, true).'</pre>'
+	]);
+	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+		'title' => 'Activities Ignored by time ('.count($ignoredActivitiesByTime).')',
+		'content' => '<pre>'.print_r($ignoredActivitiesByTime, true).'</pre>'
+	]);
+	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+		'title' => 'Activities Ignored by workout type ('.count($ignoredActivitiesByWorkout).')',
+		'content' => '<pre>'.print_r($ignoredActivitiesByWorkout, true).'</pre>'
+	]);
+	$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+		'title' => 'Activities Ignored by area ('.count($ignoredActivitiesByArea).')',
+		'content' => '<pre>'.print_r($ignoredActivitiesByArea, true).'</pre>'
 	]);
 
 	$time_end = round(microtime(true), 4);
