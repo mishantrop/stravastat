@@ -35,6 +35,11 @@
 			</div>
 			
 			<div class="form-group">
+				<label for="debug">Debug</label>
+				<input name="debug" id="debug" type="checkbox" />
+			</div>
+			
+			<div class="form-group">
 				<button type="submit">Run!</button>
 			</div>
 		</form>

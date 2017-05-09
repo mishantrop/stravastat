@@ -1,0 +1,14 @@
+.semispoiler {
+    &__content {
+        padding: 10px;
+    }
+    &__trigger {
+        background-color: #eee;
+        cursor: pointer;
+        padding: 5 10px;
+		text-align: center;
+        &:hover {
+            background-color: #ddd;
+        }
+    }
+}
