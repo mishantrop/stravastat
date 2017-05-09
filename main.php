@@ -17,6 +17,7 @@ include 'access.php';
 include 'preset.php';
 include 'models/activity.php';
 include 'models/area.php';
+include 'models/ReportGenerator.php';
 include 'models/stravastat.php';
 
 //use Pest;
@@ -44,12 +45,36 @@ try {
 	$stravastat->area->setStartLng(34.652482);
 	$stravastat->area->setEndLat(61.639137);
 	$stravastat->area->setEndLng(47.290977);
+	
+	$stravastat->reportGenerator = new ReportGenerator(time());
 
 	$output = '';
 	
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
-	$clubActivities = $client->getClubActivities($preset['CLUB_ID'], NULL, 200);
+	
+	$clubActivities = [];
+	for ($i = 1; $i <= 3; $i++) {
+		try {
+			$activities = $client->getClubActivities($preset['CLUB_ID'], $i, 200);
+		} catch (Pest_BadRequest $e) {
+			$response = json_decode($e->getMessage());
+			$output .= 	$stravastat->parser->render('etc/spoiler.tpl', [
+					'title' => 'Exception',
+					'content' => (is_object($response)) ?
+								'<pre>'.print_r($response, true).'</pre>' :
+								'<pre>'.$e->getMessage().'</pre>',
+				]);
+		}
+		if (isset($activities) && is_array($activities)) {
+			if (count($activities) == 0) {
+				break;
+			}
+			$clubActivities = array_merge($clubActivities, $activities);
+		}
+	}
+	
+	
 	$ignoreActivities = [];
 	foreach ($clubActivities as $idx => $clubActivity) {
 		if ($clubActivity['workout_type'] != 10) {
@@ -132,7 +157,7 @@ try {
 		'units' => 'км/ч',
 		'athlete' => $maxSpeedAthlete,
 	]);
-	$output = $stravastat->parser->render('pedestal/pedestalWrapper.tpl', ['output' => $pedestalOutput]);
+	$output .= $stravastat->parser->render('pedestal/pedestalWrapper.tpl', ['output' => $pedestalOutput]);
 	
 	// Участники
 	$athletesOutput = '';

@@ -2,6 +2,7 @@
 class StravaStat {
 	public $parser = null;
 	public $area = null;
+	public $reportGenerator = null;
 	
 	public function __construct() {
 
