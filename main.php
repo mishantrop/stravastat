@@ -62,10 +62,14 @@ try {
 		
 	$output = '';
 	
-	
-	
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
+	
+	foreach ($clubMembers as $clubMemberIdx => $clubMember) {
+		if (substr_count($clubMembers[$clubMemberIdx]['profile'], 'http') <= 0) {
+			$clubMembers[$clubMemberIdx]['profile'] = 'assets/images/photo.jpg';
+		}
+	}
 	
 	$clubActivities = [];
 	for ($i = 1; $i <= 10; $i++) {
@@ -163,6 +167,11 @@ try {
 			$maxDistanceAthlete = $clubActivity['athlete'];
 		}
 	}
+	if ($maxDistanceAthlete !== null) {
+		if (substr_count($maxDistanceAthlete['profile'], 'http') <= 0) {
+			$maxDistanceAthlete['profile'] = 'assets/images/photo.jpg';
+		}
+	}
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'title' => 'Самый длинный заезд',
 		'label' => 'Дистанция',
@@ -180,6 +189,11 @@ try {
 			$maxSpeedAthlete = $clubActivity['athlete'];
 		}
 	}
+	if ($maxSpeedAthlete !== null) {
+		if (substr_count($maxSpeedAthlete['profile'], 'http') <= 0) {
+			$maxSpeedAthlete['profile'] = 'assets/images/photo.jpg';
+		}
+	}
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'title' => 'Рекорд скорости',
 		'label' => 'Скорость',
@@ -193,9 +207,6 @@ try {
 	// Участники
 	$athletesOutput = '';
 	foreach ($clubMembers as $clubMember) {
-		if ($clubMember['profile'] == 'avatar/athlete/large.png') {
-			$clubMember['profile'] = 'assets/images/photo.jpg';
-		}
 		$athletesOutput .= $stravastat->parser->render('athletes/athleteItem.tpl', [
 			'athlete' => $clubMember,
 		]);
@@ -223,6 +234,7 @@ try {
 		'output' => $activitiesOutput
 	]);
 	$output .= '<script>window.mapActivities = ['.$activitiesJsOutput.'];</script>';
+	$output .= $stravastat->parser->render('activities/activitiesMap.tpl', []);
     
 	// Raw Responses
 	$output .= '<h2>Исходные данные</h2>';

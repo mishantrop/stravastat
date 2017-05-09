@@ -25,6 +25,7 @@
 				<select name="club">
 					<option value="198259" selected>ВелоСокол</option>
 					<option value="87309">ВелоВологда</option>
+					<option value="129073">ВелоПитер</option>
 				</select>
 			</div>
 			

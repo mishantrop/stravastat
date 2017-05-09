@@ -18,8 +18,23 @@ $(function() {
 		}
 	});
 	
+	makeElementsSameHeight('.athletes .athletes-item');
+	
 	initActivitiesMap();
 });
+
+function makeElementsSameHeight(selector) {
+    var windowWidth = $(window).outerWidth();
+    $(selector).css('height', 'auto');
+    var maxHeight = 0;
+    $.each($(selector), function(idx, e) {
+        maxHeight = ($(e).outerHeight() > maxHeight) ? $(e).outerHeight() : maxHeight;
+    });
+	if (maxHeight > 0) {
+    	$(selector).css('height', maxHeight);
+	}
+    
+}
 
 function googleApiAvailable() {
 	return (typeof window.google === 'object' && window.google !== null && typeof window.google.maps === 'object' && window.google.maps !== null);
@@ -50,7 +65,7 @@ function initActivitiesMap() {
     }
 
     var mapOptions = {
-        zoom: 10,
+        zoom: 8,
         scrollwheel: false,
         navigationControl: true,
         mapTypeControl: false,
@@ -64,9 +79,7 @@ function initActivitiesMap() {
 		var infowindow = new google.maps.InfoWindow();
 		var avgLat = 0;
 		var avgLng = 0;
-		
-		
-		
+
 		for (idx in window.mapActivities) {
 			var place = window.mapActivities[idx];
 			avgLat += parseFloat(place.lat/window.mapActivities.length)
@@ -91,19 +104,11 @@ function initActivitiesMap() {
 			markers.push(marker);
 		}
 		
-		/*var markers = window.mapActivities.map(function(location, i) {
-			return new google.maps.Marker({
-				position: {lat: parseFloat(location.lat), lng: parseFloat(location.lng)},
-				//label: location.title,
-			});
-        });*/
-		
 		var avgPosition = new google.maps.LatLng(avgLat, avgLng);
 		map.setCenter(avgPosition);
-		console.debug(markers);
 		var mc = new MarkerClusterer(map, markers, {
-			gridSize: 50,
-			maxZoom: 15,
+			gridSize: 40,
+			maxZoom: 10,
 			imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
 		});
 	}
