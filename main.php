@@ -117,8 +117,18 @@ try {
 
 
 	foreach ($clubMembers as $clubMemberIdx => $clubMember) {
+		/**
+		 * Если у пользователя нет аватарки, ставим ему статическую заглушку.
+		 * Если есть аватарка, то сохраняем её в кэш, чтобы каждый раз не обращаться к серверу стравы.
+		 */
 		if (substr_count($clubMembers[$clubMemberIdx]['profile'], 'http') <= 0) {
 			$clubMembers[$clubMemberIdx]['profile'] = 'assets/images/photo.jpg';
+		} else {
+			if (!file_exists(BASE_PATH.'cache/avatars/'.$clubMember['id'].'.jpg')) {
+				$avatarContent = file_get_contents($clubMembers[$clubMemberIdx]['profile']);
+				file_put_contents(BASE_PATH.'cache/avatars/'.$clubMember['id'].'.jpg', $avatarContent);
+			}
+			$clubMembers[$clubMemberIdx]['profile'] = 'cache/avatars/'.$clubMember['id'].'.jpg';
 		}
 	}
 
