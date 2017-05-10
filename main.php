@@ -44,7 +44,7 @@ $autoload = [
 	],
 ];
 foreach ($autoload['model'] as $model) {
-	if (!file_exists(BASE_PATH.'model/'.$model.'.php')) {
+	if (!file_exists(BASE_PATH.'models/'.$model.'.php')) {
 		die('Model '.$model.'does not exists');
 	} else {
 		include 'models/'.$model.'.php';
@@ -128,10 +128,16 @@ try {
 	$ignoredActivitiesByTime = [];
 	$ignoredActivitiesByWorkout = [];
 	$ignoredActivitiesByArea = [];
+	$ignoredActivitiesByFlagged = [];
 	foreach ($clubActivities as $idx => $clubActivity) {
 		// Filter by type (bicycles only!)
 		if ($clubActivity['workout_type'] != 10) {
 			$ignoredActivitiesByWorkout[] = &$clubActivities[$idx];
+			unset($clubActivities[$idx]);
+			continue;
+		}
+		if ($clubActivity['flagged'] == 1) {
+			$ignoredActivitiesByFlagged[] = &$clubActivities[$idx];
 			unset($clubActivities[$idx]);
 			continue;
 		}
@@ -298,6 +304,10 @@ try {
 		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
 			'title' => 'Activities Ignored by area ('.count($ignoredActivitiesByArea).')',
 			'content' => '<pre>'.print_r($ignoredActivitiesByArea, true).'</pre>'
+		]);
+		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
+			'title' => 'Activities Ignored by flagged ('.count($ignoredActivitiesByFlagged).')',
+			'content' => '<pre>'.print_r($ignoredActivitiesByFlagged, true).'</pre>'
 		]);
 	}
 

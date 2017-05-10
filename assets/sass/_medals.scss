@@ -1,0 +1,30 @@
+.medals {
+    overflow: hidden;
+    padding: 1rem;
+    &__header {
+        color: #222;
+        margin: 0 0 1rem 0;
+        padding: 0 0 0 0;
+    }
+    &-item {
+		margin: 0 0 2rem 0;
+        text-align: center;
+        text-decoration: none;
+        &:hover {
+            .medals-item__username-link {
+                color: #fc4c02;
+            }
+        }
+        &__image {
+            display: block;
+            border-radius: 50%;
+            margin: 0 auto 5px auto;
+			max-width: 100%;
+            width: 100px;
+            height: 100px;
+            &-link {
+                display: block;
+            }
+        }
+    }
+}
