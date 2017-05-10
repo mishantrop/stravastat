@@ -10,4 +10,4 @@
 * Copy access.example.php to access.php and fill one.
 
 # Roadmap #
-* Generate images
+* Blacklist

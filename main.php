@@ -115,7 +115,8 @@ try {
 		file_put_contents('cache/athletes.json', json_encode($clubMembers, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 	}
 	
-
+	// Ids of athletes
+	$athletesBlacklist = [];
 
 	foreach ($clubMembers as $clubMemberIdx => $clubMember) {
 		/**
@@ -171,7 +172,6 @@ try {
 	$ignoredActivitiesByArea = [];
 	$ignoredActivitiesByFlagged = [];
 	foreach ($clubActivities as $idx => $clubActivity) {
-		$clubActivity = (array)$clubActivity;
 		// Filter by type (bicycles only!)
 		if ($clubActivity['workout_type'] != 10) {
 			$ignoredActivitiesByWorkout[] = &$clubActivities[$idx];
