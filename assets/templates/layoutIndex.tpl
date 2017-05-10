@@ -31,12 +31,17 @@
 			
 			<div class="form-group">
 				<label>Period</label>
-				<input name="start" value="{{ start }}" placeholder="08.05.2017" /> - <input name="end" value="{{ end }}" placeholder="14.05.2017" />
+				<input name="start" value="{{ start }}" placeholder="dd.mm.yyyy" /> - <input name="end" value="{{ end }}" placeholder="dd.mm.yyyy" />
 			</div>
 			
 			<div class="form-group">
 				<label for="debug">Debug</label>
-				<input name="debug" id="debug" type="checkbox" />
+				<input name="debug" id="debug" value="1" type="checkbox" />
+			</div>
+			
+			<div class="form-group">
+				<label for="debug">Use cache</label>
+				<input name="usecache" id="usecache" value="1" type="checkbox" />
 			</div>
 			
 			<div class="form-group">

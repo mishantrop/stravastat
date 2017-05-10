@@ -1,5 +1,6 @@
 <?php
 $time_start = round(microtime(true), 4);
+define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
 define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
 switch (ENVIRONMENT)
 {
@@ -11,8 +12,6 @@ switch (ENVIRONMENT)
 
 	break;
 }
-
-define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
 
 if (!file_exists(BASE_PATH.'vendor/autoload.php')) {
 	die('Install Composer and packages from composer.json');
@@ -64,7 +63,7 @@ try {
     $service = new REST($config['ACCESS_TOKEN'], $adapter);
     $client = new Client($service);
 
-	$loader = new Twig_Loader_Filesystem($_SERVER['DOCUMENT_ROOT'].'/assets/templates');
+	$loader = new Twig_Loader_Filesystem(BASE_PATH.'assets/templates');
 	$stravastat->parser = new Twig_Environment($loader, [
 	    //'cache' => $_SERVER['DOCUMENT_ROOT'].'/assets/templates/cache',
 		'cache' => false,
@@ -86,17 +85,36 @@ try {
 			strtotime($_POST['end']) + 86400 - 1
 		];
 	}
-
+	
 	if (isset($_POST['club'])) {
 		$preset['CLUB_ID'] = (int)$_POST['club'];
 	}
+	$useCache = (isset($_POST['usecache']) && $_POST['usecache'] == 1);
 
 	$output = '';
 
+	$time_start_data = round(microtime(true), 4); // Time to get data
+	if ($useCache && file_exists('cache/club.json')) {
+    	$club = json_decode(file_get_contents('cache/club.json'), true);
+		if (!is_array($club)) {
+			die('Club cache is empty');
+		}
+	} else {
+		$club = $client->getClub($preset['CLUB_ID']);
+		file_put_contents('cache/club.json', json_encode($club, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+	}
+	
+	if ($useCache && file_exists('cache/athletes.json')) {
+		$clubMembers = json_decode(file_get_contents('cache/athletes.json'), true);
+		if (!is_array($clubMembers)) {
+			die('Athletes cache is empty');
+		}
+	} else {
+		$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
+		file_put_contents('cache/athletes.json', json_encode($clubMembers, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+	}
+	
 
-
-    $club = $client->getClub($preset['CLUB_ID']);
-	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
 
 	foreach ($clubMembers as $clubMemberIdx => $clubMember) {
 		if (substr_count($clubMembers[$clubMemberIdx]['profile'], 'http') <= 0) {
@@ -105,31 +123,44 @@ try {
 	}
 
 	$clubActivities = [];
-	for ($i = 1; $i <= 10; $i++) {
-		try {
-			$activities = $client->getClubActivities($preset['CLUB_ID'], $i, 200);
-		} catch (Pest_BadRequest $e) {
-			$response = json_decode($e->getMessage());
-			$output .= 	$stravastat->parser->render('etc/spoiler.tpl', [
-					'title' => 'Exception',
-					'content' => (is_object($response)) ?
-								'<pre>'.print_r($response, true).'</pre>' :
-								'<pre>'.$e->getMessage().'</pre>',
-				]);
+	if ($useCache && file_exists('cache/activities.json')) {
+		$clubActivities = json_decode(file_get_contents('cache/activities.json'), true);
+		if (!is_array($clubActivities)) {
+			die('Activities cache is empty');
 		}
-		if (isset($activities) && is_array($activities)) {
-			if (count($activities) == 0) {
-				break;
+	} else {
+		for ($i = 1; $i <= 10; $i++) {
+			try {
+				$activities = $client->getClubActivities($preset['CLUB_ID'], $i, 200);
+			} catch (Pest_BadRequest $e) {
+				$response = json_decode($e->getMessage());
+				$output .= 	$stravastat->parser->render('etc/spoiler.tpl', [
+						'title' => 'Exception',
+						'content' => (is_object($response)) ?
+									'<pre>'.print_r($response, true).'</pre>' :
+									'<pre>'.$e->getMessage().'</pre>',
+					]);
 			}
-			$clubActivities = array_merge($clubActivities, $activities);
+			if (isset($activities) && is_array($activities)) {
+				if (count($activities) == 0) {
+					break;
+				}
+				$clubActivities = array_merge($clubActivities, $activities);
+			}
 		}
+		file_put_contents('cache/activities.json', json_encode($clubActivities, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 	}
+
+	
+	$time_end_data = round(microtime(true), 4);
+	$time_start_calc = round(microtime(true), 4); // Time to calc results
 
 	$ignoredActivitiesByTime = [];
 	$ignoredActivitiesByWorkout = [];
 	$ignoredActivitiesByArea = [];
 	$ignoredActivitiesByFlagged = [];
 	foreach ($clubActivities as $idx => $clubActivity) {
+		$clubActivity = (array)$clubActivity;
 		// Filter by type (bicycles only!)
 		if ($clubActivity['workout_type'] != 10) {
 			$ignoredActivitiesByWorkout[] = &$clubActivities[$idx];
@@ -164,6 +195,7 @@ try {
 	// Рекорд по суммарной дистанции
 	$athletesDistances = [];
 	foreach ($clubActivities as $clubActivity) {
+		$clubActivity = (array)$clubActivity;
 		if (!isset($athletesDistances[$clubActivity['athlete']['id']])) {
 			$athletesDistances[$clubActivity['athlete']['id']] = 0;
 		}
@@ -245,6 +277,8 @@ try {
 		'output' => $pedestalOutput,
 		'period' => date('d.m.Y', $period[0]).' - '.date('d.m.Y', $period[1])
 	]);
+	
+	$time_end_calc = round(microtime(true), 4);
 
 	// Участники
 	$athletesOutput = '';
@@ -313,17 +347,21 @@ try {
 
 	$time_end = round(microtime(true), 4);
 	$execution_time = ($time_end - $time_start);
+	$execution_time_data = ($time_end_data - $time_start_data);
+	$execution_time_calc = ($time_end_calc - $time_start_calc);
 
 	// Main layout
 	$output = $stravastat->parser->render('layoutMain.tpl', [
 		'output' => $output,
 		't' => $execution_time,
+		'td' => $execution_time_data,
+		'tc' => $execution_time_calc,
 		'assets_version' => time(),
 	]);
 	echo $output;
 
 	$output = str_replace('<base href="/" />', '<base href="https://quasi-art.ru/stravastat/" />', $output);
-	file_put_contents($_SERVER['DOCUMENT_ROOT'].'/reports/report_'.$preset['CLUB_ID'].'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
+	file_put_contents(BASE_PATH.'reports/report_'.$preset['CLUB_ID'].'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
 } catch(Exception $e) {
     print $e->getMessage();
 }
