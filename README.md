@@ -6,6 +6,4 @@
 * Copy access.example.php to access.php and fill one.
 
 # Roadmap #
-* Show activities on map (only start points)
-* Clasterize markers
 * Generate images

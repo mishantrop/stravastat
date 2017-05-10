@@ -25,14 +25,31 @@ if (!file_exists(BASE_PATH.'access.php')) {
 	include BASE_PATH.'access.php';
 }
 if (!file_exists(BASE_PATH.'preset.php')) {
-	
+	$preset = [
+		'CLUB_ID' => NULL,
+	];
 } else {
 	include BASE_PATH.'preset.php';
 }
-include 'models/activity.php';
-include 'models/area.php';
-include 'models/ReportGenerator.php';
-include 'models/stravastat.php';
+if (!isset($preset['CLUB_ID'])) {
+	$preset['CLUB_ID'] = NULL;
+}
+
+$autoload = [
+	'model' => [
+		'activity',
+		'area',
+		'ReportGenerator',
+		'stravastat',
+	],
+];
+foreach ($autoload['model'] as $model) {
+	if (!file_exists(BASE_PATH.'model/'.$model.'.php')) {
+		die('Model '.$model.'does not exists');
+	} else {
+		include 'models/'.$model.'.php';
+	}
+}
 
 //use Pest;
 use Strava\API\Client;
@@ -75,6 +92,8 @@ try {
 	}
 
 	$output = '';
+
+
 
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
