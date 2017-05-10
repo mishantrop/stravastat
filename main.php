@@ -12,9 +12,23 @@ switch (ENVIRONMENT)
 	break;
 }
 
-include 'vendor/autoload.php';
-include 'access.php';
-include 'preset.php';
+define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
+
+if (!file_exists(BASE_PATH.'vendor/autoload.php')) {
+	die('Install Composer and packages from composer.json');
+} else {
+	include BASE_PATH.'vendor/autoload.php';
+}
+if (!file_exists(BASE_PATH.'access.php')) {
+	die('Copy access.example.php to access.php and get fill one');
+} else {
+	include BASE_PATH.'access.php';
+}
+if (!file_exists(BASE_PATH.'preset.php')) {
+	
+} else {
+	include BASE_PATH.'preset.php';
+}
 include 'models/activity.php';
 include 'models/area.php';
 include 'models/ReportGenerator.php';
@@ -27,25 +41,25 @@ use Strava\API\Service\REST;
 
 try {
 	$stravastat = new StravaStat();
-	
+
 	// StravaPHP
     $adapter = new Pest('https://www.strava.com/api/v3');
     $service = new REST($config['ACCESS_TOKEN'], $adapter);
     $client = new Client($service);
-	
+
 	$loader = new Twig_Loader_Filesystem($_SERVER['DOCUMENT_ROOT'].'/assets/templates');
 	$stravastat->parser = new Twig_Environment($loader, [
 	    //'cache' => $_SERVER['DOCUMENT_ROOT'].'/assets/templates/cache',
 		'cache' => false,
 	]);
-	
+
 	// Restrict to Vologda Oblast
 	$stravastat->area = new Area();
 	$stravastat->area->setStartLat(58.429187);
 	$stravastat->area->setStartLng(34.652482);
 	$stravastat->area->setEndLat(61.639137);
 	$stravastat->area->setEndLng(47.290977);
-	
+
 	$stravastat->reportGenerator = new ReportGenerator(time());
 
 	$period = $stravastat->reportGenerator->getLastWeekRange();
@@ -55,22 +69,22 @@ try {
 			strtotime($_POST['end']) + 86400 - 1
 		];
 	}
-	
+
 	if (isset($_POST['club'])) {
 		$preset['CLUB_ID'] = (int)$_POST['club'];
 	}
-		
+
 	$output = '';
-	
+
     $club = $client->getClub($preset['CLUB_ID']);
 	$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
-	
+
 	foreach ($clubMembers as $clubMemberIdx => $clubMember) {
 		if (substr_count($clubMembers[$clubMemberIdx]['profile'], 'http') <= 0) {
 			$clubMembers[$clubMemberIdx]['profile'] = 'assets/images/photo.jpg';
 		}
 	}
-	
+
 	$clubActivities = [];
 	for ($i = 1; $i <= 10; $i++) {
 		try {
@@ -91,7 +105,7 @@ try {
 			$clubActivities = array_merge($clubActivities, $activities);
 		}
 	}
-	
+
 	$ignoredActivitiesByTime = [];
 	$ignoredActivitiesByWorkout = [];
 	$ignoredActivitiesByArea = [];
@@ -117,11 +131,11 @@ try {
 			continue;
 		}
 	}
-	
+
 	$output .= $stravastat->parser->render('clubs/club-bage.tpl', ['club' => $club]);
-	
+
 	//$output .= '<h2>Period: '.date('H:i d.m.Y', $period[0]).' - '.date('H:i d.m.Y', $period[1]).'</h2>';
-	
+
 	// Рекорд по суммарной дистанции
 	$athletesDistances = [];
 	foreach ($clubActivities as $clubActivity) {
@@ -157,7 +171,7 @@ try {
 		'units' => 'км',
 		'athlete' => $maxDistanceAthlete,
 	]);
-	
+
 	// Рекорд по самому длинному заезду
 	$maxDistance = 0;
 	$maxDistanceAthlete = null;
@@ -179,7 +193,7 @@ try {
 		'units' => 'км',
 		'athlete' => $maxDistanceAthlete,
 	]);
-	
+
 	// Рекорд скорости
 	$maxSpeed = 0;
 	$maxSpeedAthlete = null;
@@ -218,7 +232,7 @@ try {
 		'athletesCount' => count($clubMembers),
 		'output' => $athletesOutput
 	]);
-    
+
 	// Output last club activities
 	$activitiesOutput = '';
 	$activitiesJsOutput = '';
@@ -238,7 +252,7 @@ try {
 	]);
 	$output .= '<script>window.mapActivities = ['.$activitiesJsOutput.'];</script>';
 	$output .= $stravastat->parser->render('activities/activitiesMap.tpl', []);
-    
+
 	// Raw Responses
 	if (isset($_POST['debug'])) {
 		$output .= '<h2>Исходные данные</h2>';
@@ -278,11 +292,9 @@ try {
 		'assets_version' => time(),
 	]);
 	echo $output;
-	
+
 	$output = str_replace('<base href="/" />', '<base href="https://quasi-art.ru/stravastat/" />', $output);
 	file_put_contents($_SERVER['DOCUMENT_ROOT'].'/reports/report_'.$preset['CLUB_ID'].'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
 } catch(Exception $e) {
     print $e->getMessage();
 }
-
-
