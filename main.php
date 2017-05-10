@@ -1,5 +1,6 @@
 <?php
 $time_start = round(microtime(true), 4);
+set_time_limit(360);
 define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
 define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
 switch (ENVIRONMENT)
@@ -200,9 +201,7 @@ try {
 
 	$output .= $stravastat->parser->render('clubs/club-bage.tpl', ['club' => $club]);
 
-	//$output .= '<h2>Period: '.date('H:i d.m.Y', $period[0]).' - '.date('H:i d.m.Y', $period[1]).'</h2>';
-
-	// Рекорд по суммарной дистанции
+	// Рекорд по общей дистанции
 	$athletesDistances = [];
 	foreach ($clubActivities as $clubActivity) {
 		$clubActivity = (array)$clubActivity;
@@ -211,20 +210,19 @@ try {
 		}
 		$athletesDistances[$clubActivity['athlete']['id']] += round((float)$clubActivity['distance'], 2);
 	}
-	$maxDistance = 0;
-	$maxDistanceAthleteId = null;
-	$maxDistanceAthlete = null;
-	$athleteId = 0;
+	$maxTotalDistance = 0;
+	$totalDistanceAthleteId = null;
+	$totalDistanceAthlete = null;
 	foreach ($athletesDistances as $athleteId => $distanceSum) {
-		if ((float)$distanceSum > (float)$maxDistance) {
-			$maxDistance = round((float)$distanceSum, 2);
-			$maxDistanceAthleteId = (int)$athleteId;
+		if ((float)$distanceSum > (float)$maxTotalDistance) {
+			$maxTotalDistance = round((float)$distanceSum, 2);
+			$totalDistanceAthleteId = (int)$athleteId;
 		}
 	}
-	if ($athleteId > 0) {
+	if ($totalDistanceAthleteId > 0) {
 		foreach ($clubMembers as $clubMember) {
-			if ($clubMember['id'] == $maxDistanceAthleteId) {
-				$maxDistanceAthlete = $clubMember;
+			if ($clubMember['id'] == $totalDistanceAthleteId) {
+				$totalDistanceAthlete = $clubMember;
 				break;
 			}
 		}
@@ -232,11 +230,11 @@ try {
 
 	$pedestalOutput = '';
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Рекорд по общей дистанции',
+		'title' => 'Общая дистанция',
 		'label' => 'Общая дистанция',
-		'value' => $stravastat->convertDistance($maxDistance),
+		'value' => $stravastat->convertDistance($maxTotalDistance),
 		'units' => 'км',
-		'athlete' => $maxDistanceAthlete,
+		'athlete' => $totalDistanceAthlete,
 	]);
 
 	// Рекорд по самому длинному заезду
@@ -276,12 +274,46 @@ try {
 		}
 	}
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Рекорд скорости',
-		'label' => 'Скорость',
+		'title' => 'Максимальная скорость',
+		'label' => 'Максимальная скорость',
 		'value' => $stravastat->convertSpeed($maxSpeed),
 		'units' => 'км/ч',
 		'athlete' => $maxSpeedAthlete,
 	]);
+	
+	// Суммарный подъём [id => climb]
+	$athletesToClimb = [];
+	foreach ($clubMembers as $clubMember) {
+		$athletesToClimb[$clubMember['id']] = 0.0;
+		foreach ($clubActivities as $clubActivity) {
+			if ($clubActivity['athlete']['id'] == $clubMember['id']) {
+				$athletesToClimb[$clubMember['id']] += round((float)$clubActivity['total_elevation_gain'], 2);
+			}
+		}
+	}
+	$maxClimbSum = 0;
+	$maxClimbSumAthlete = null;
+	$maxClimbSumAthleteId = null;
+	foreach ($athletesToClimb as $athleteId => $climbSum) {
+		if ($climbSum > $maxClimbSum) {
+			$maxClimbSum = $climbSum;
+			$maxClimbSumAthleteId = $athleteId;
+		}
+	}
+	foreach ($clubMembers as $clubMember) {
+		if ($clubMember['id'] == $maxClimbSumAthleteId) {
+			$maxClimbSumAthlete = &$clubMember;
+			break;
+		}
+	}
+	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
+		'title' => 'Подъём',
+		'label' => 'Подъём',
+		'value' => (int)$maxClimbSum,
+		'units' => 'м',
+		'athlete' => $maxClimbSumAthlete,
+	]);
+	
 	// Pedestal
 	$output .= $stravastat->parser->render('pedestal/pedestalWrapper.tpl', [
 		'output' => $pedestalOutput,
@@ -289,6 +321,36 @@ try {
 	]);
 	
 	$time_end_calc = round(microtime(true), 4);
+
+	// Medals
+	$medalsOutput = '';
+	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
+		'athlete' => $totalDistanceAthlete,
+		'discipline' => 'totaldistance',
+		'value' => $stravastat->convertDistance($maxTotalDistance),
+		'units' => 'км',
+	]);
+	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
+		'athlete' => $maxDistanceAthlete,
+		'discipline' => 'maxdistance',
+		'value' => $stravastat->convertDistance($maxDistance),
+		'units' => 'км',
+	]);
+	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
+		'athlete' => $maxSpeedAthlete,
+		'discipline' => 'maxspeed',
+		'value' => $stravastat->convertSpeed($maxSpeed),
+		'units' => 'км/ч',
+	]);
+	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
+		'athlete' => $maxClimbSumAthlete,
+		'discipline' => 'climb',
+		'value' => (int)$maxClimbSum,
+		'units' => 'м',
+	]);
+	$output .= $stravastat->parser->render('medals/medalsWrapper.tpl', [
+		'output' => $medalsOutput,
+	]);
 
 	// Участники
 	$athletesOutput = '';

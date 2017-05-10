@@ -4,5 +4,6 @@
 	<td>{{ stravastat.convertDistance(activity['distance']) }}</td>
 	<td>{{ stravastat.convertSpeed(activity['max_speed']) }}</td>
 	<td>{{ stravastat.convertSpeed(activity['average_speed']) }}</td>
+	<td>{{ activity['total_elevation_gain'] }}</td>
 	<td data-value="{{ movingTimeTimestamp }}">{{ stravastat.convertTime(activity['moving_time']) }}</td>
 </tr>

@@ -61,7 +61,7 @@ $color = new Color(
 // Name
 $boxName = new Box($image);
 $boxName->setFontFace(BASE_PATH.'assets/fonts/Rubik-Medium.ttf');
-$boxName->setFontSize(100);
+$boxName->setFontSize(90);
 $boxName->setLineHeight(1);
 $boxName->setFontColor($color);
 $boxName->setBox(325, 900, 600, 750);
