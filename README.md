@@ -1,5 +1,9 @@
 # StravaStat #
 
+# Requirements #
+* PHP7
+* Strava account
+
 # Installation #
 * Install composer and requirements from composer.json.
 * Get Access token, Client ID etc.
