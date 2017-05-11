@@ -14,6 +14,11 @@ switch (ENVIRONMENT)
 	break;
 }
 
+function convertMemory($size) {
+    $unit=array('b','kb','mb','gb','tb','pb');
+    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+}
+
 if (!file_exists(BASE_PATH.'vendor/autoload.php')) {
 	die('Install Composer and packages from composer.json');
 } else {
@@ -162,6 +167,11 @@ try {
 		}
 		file_put_contents('cache/activities.json', json_encode($clubActivities, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 	}
+	/*foreach ($clubMembers as $clubMemberIdx => $clubMember) {
+		$memberActivities = $client->getAthleteActivities($period[1], $period[0], null, null);
+		$clubActivities = array_merge($clubActivities, $memberActivities);
+		//unset($memberActivities);
+	}*/
 
 	
 	$time_end_data = round(microtime(true), 4);
@@ -185,7 +195,7 @@ try {
 		}
 		// Filter by period
 		if (!$stravastat->reportGenerator->inRange(strtotime($clubActivity['start_date']), $period)) {
-			//$output .= '<p><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].' ('.date('H:i d.m.Y', strtotime($clubActivity['start_date'])).')</a> does not match period</p>';
+			// $output .= '<p><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].' ('.date('H:i d.m.Y', strtotime($clubActivity['start_date'])).')</a> does not match period</p>';
 			$ignoredActivitiesByTime[] = &$clubActivities[$idx];
 			unset($clubActivities[$idx]);
 			continue;
@@ -425,6 +435,7 @@ try {
 	// Main layout
 	$output = $stravastat->parser->render('layoutMain.tpl', [
 		'output' => $output,
+		'm' => convertMemory(memory_get_usage()),
 		't' => $execution_time,
 		'td' => $execution_time_data,
 		'tc' => $execution_time_calc,
