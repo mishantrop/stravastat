@@ -11,3 +11,5 @@
 
 # Roadmap #
 * Blacklist
+* Show rating, not only 1st places
+* User info in activities table
