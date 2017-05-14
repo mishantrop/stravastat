@@ -14,21 +14,6 @@ body {
 	}
 }
 
-.activities {
-    &-map {
-        height: 480px;
-		padding: 1rem;
-	    &__header {
-			color: #222;
-	        margin: 0 0 1rem 0;
-	        padding: 0 0 0 0;
-	    }
-        &-wrapper {
-            margin: 0 0 0 0;
-        }
-    }
-}
-
 .footer {
 	padding: 1rem;
 	text-align: center;
@@ -44,6 +29,7 @@ body {
 	}
 }
 
+@import "_activities.scss";
 @import "_athletes.scss";
 @import "_club.scss";
 @import "_header.scss";

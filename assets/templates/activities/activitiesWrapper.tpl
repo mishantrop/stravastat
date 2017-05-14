@@ -2,6 +2,7 @@
 <table class="report-table" id="table-last-activities">
 	<thead>
 		<tr>
+			<th></th>
 			<th>Дата</th>
 			<th>Название</th>
 			<th>Дистанция</th>

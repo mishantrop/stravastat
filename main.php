@@ -1,7 +1,7 @@
 <?php
 $time_start = round(microtime(true), 4);
 set_time_limit(360);
-define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
+define('BASE_PATH', __DIR__.'/');
 define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
 switch (ENVIRONMENT)
 {
@@ -207,6 +207,11 @@ try {
 			unset($clubActivities[$idx]);
 			continue;
 		}
+		foreach ($clubMembers as $clubMember) {
+			if ($clubMember['id'] == $clubActivity['athlete']['id']) {
+				$clubActivity['athlete'] = $clubMember;
+			}
+		}
 	}
 
 	$output .= $stravastat->parser->render('clubs/club-bage.tpl', ['club' => $club]);
@@ -241,7 +246,6 @@ try {
 	$pedestalOutput = '';
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'title' => 'Общая дистанция',
-		'label' => 'Общая дистанция',
 		'value' => $stravastat->convertDistance($maxTotalDistance),
 		'units' => 'км',
 		'athlete' => $totalDistanceAthlete,
@@ -263,7 +267,6 @@ try {
 	}
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'title' => 'Самый длинный заезд',
-		'label' => 'Дистанция',
 		'value' => $stravastat->convertDistance($maxDistance),
 		'units' => 'км',
 		'athlete' => $maxDistanceAthlete,
@@ -285,7 +288,6 @@ try {
 	}
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'title' => 'Максимальная скорость',
-		'label' => 'Максимальная скорость',
 		'value' => $stravastat->convertSpeed($maxSpeed),
 		'units' => 'км/ч',
 		'athlete' => $maxSpeedAthlete,
@@ -318,10 +320,51 @@ try {
 	}
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'title' => 'Подъём',
-		'label' => 'Подъём',
 		'value' => (int)$maxClimbSum,
 		'units' => 'м',
 		'athlete' => $maxClimbSumAthlete,
+	]);
+	
+	// Максимальная средняя скорость
+	// (100+10)/(10/40+100/20)=110/5,25
+	// 20,95 км/ч
+	$clubMembersSpeeds = [];
+	$clubMembersAvgSpeeds = [];
+	foreach ($clubActivities as $clubActivity) { //
+		$record = [
+			'distance' => round((float)$clubActivity['distance'], 2),
+			'avgspeed' => round((float)$clubActivity['average_speed'], 2),
+		];
+		if (!isset($clubMembersSpeeds[$clubActivity['athlete']['id']])) {
+			$clubMembersSpeeds[$clubActivity['athlete']['id']] = [$record];
+		} else {
+			$clubMembersSpeeds[$clubActivity['athlete']['id']][] = $record;
+		}
+	}
+	foreach ($clubMembersSpeeds as $clubMemberId => $clubMemberSpeeds) {
+		$clubMembersAvgSpeeds[$clubMemberId] = round(rand(2000, 4000)/100, 2);
+	}
+	$output .= '<pre>'.print_r($clubMembersAvgSpeeds, true).'</pre>';
+	$maxAvgSpeed = 0;
+	$maxAvgSpeedAthlete = null;
+	$maxAvgSpeedAthleteId = null;
+	foreach ($athletesToClimb as $athleteId => $climbSum) {
+		if ($climbSum > $maxClimbSum) {
+			$maxClimbSum = $climbSum;
+			$maxClimbSumAthleteId = $athleteId;
+		}
+	}
+	foreach ($clubMembers as $clubMember) {
+		if ($clubMember['id'] == $maxClimbSumAthleteId) {
+			$maxClimbSumAthlete = &$clubMember;
+			break;
+		}
+	}
+	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
+		'title' => 'Макс. ср. скорость',
+		'value' => (int)$maxAvgSpeed,
+		'units' => 'м',
+		'athlete' => $maxAvgSpeedAthlete,
 	]);
 	
 	// Pedestal

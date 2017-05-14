@@ -1,4 +1,4 @@
-<div class="pedestal-item col s12 m3">
+<div class="pedestal-item col s12 m4 l2">
 	<h2 class="pedestal-item__header">{{ title }}</h2>
 	<a href="https://www.strava.com/athletes/{{ athlete['id'] }}" class="pedestal-item__image-link">
 		<img src="{{ athlete['profile'] }}" class="pedestal-item__image" />
