@@ -10,6 +10,4 @@
 * Copy access.example.php to access.php and fill one.
 
 # Roadmap #
-* Blacklist
 * Show rating, not only 1st places
-* User info in activities table
