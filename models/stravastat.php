@@ -6,7 +6,11 @@ class StravaStat {
 	public $reportGenerator = null;
 	
 	public function __construct() {
-
+		if (defined('BASE_PATH')) {
+		    $this->basePath = BASE_PATH;
+		} else {
+			$this->basePath = $_SERVER['DOCUMENT_ROOT'].'/';
+		}
 	}
 	
 	public function convertSpeed($speed) {
@@ -54,29 +58,29 @@ class StravaStat {
 	}
 
 	public function getClub($clubId, $useCache) {
-		if ($useCache && file_exists('cache/club.json')) {
+		if ($useCache && file_exists($this->basePath.'cache/club.json')) {
 			$club = json_decode(file_get_contents('cache/club.json'), true);
 		} else {
 			$club = $this->client->getClub($clubId);
-			file_put_contents('cache/club.json', json_encode($club, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+			file_put_contents($this->basePath.'cache/club.json', json_encode($club, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 		}
 		return $club;
 	}
 	
 	public function getClubMembers($clubId, $useCache) {
-		if ($useCache && file_exists('cache/athletes.json')) {
+		if ($useCache && file_exists($this->basePath.'cache/athletes.json')) {
 			$clubMembers = json_decode(file_get_contents('cache/athletes.json'), true);
 		} else {
 			$clubMembers = $this->client->getClubMembers($clubId, 1, 200);
-			file_put_contents('cache/athletes.json', json_encode($clubMembers, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+			file_put_contents($this->basePath.'cache/athletes.json', json_encode($clubMembers, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 		}
 		return $clubMembers;
 	}
 
 	public function getClubActivities($clubId, $useCache) {
 		$clubActivities = [];
-		if ($useCache && file_exists('cache/activities.json')) {
-			$clubActivities = json_decode(file_get_contents('cache/activities.json'), true);
+		if ($useCache && file_exists($this->basePath.'cache/activities.json')) {
+			$clubActivities = json_decode(file_get_contents($this->basePath.'cache/activities.json'), true);
 			if (!is_array($clubActivities)) {
 				die('Activities cache is empty');
 			}
@@ -94,7 +98,7 @@ class StravaStat {
 					$clubActivities = array_merge($clubActivities, $activities);
 				}
 			}
-			file_put_contents('cache/activities.json', json_encode($clubActivities, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+			file_put_contents($this->basePath.'cache/activities.json', json_encode($clubActivities, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 		}
 		return $clubActivities;
 	}
@@ -161,6 +165,11 @@ class StravaStat {
 			}
 		}
 		return $clubMembers;
+	}
+
+	public function saveReport($output, $clubId, $period) {
+		$output = str_replace('<base href="/" />', '<base href="https://quasi-art.ru/stravastat/" />', $output);
+		file_put_contents(BASE_PATH.'reports/report_'.$clubId.'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
 	}
 
 }

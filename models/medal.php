@@ -159,23 +159,27 @@ class MedalAvgSpeed implements Medal {
 			}
 		}
 		foreach ($clubMembersSpeeds as $clubMemberId => $clubMemberSpeeds) {
-			$clubMembersAvgSpeeds[$clubMemberId] = round(rand(2000, 4000)/100, 2);
+			$distanceSum = 0;
+			$timeSum = 0;
+			foreach ($clubMemberSpeeds as $clubMemberSpeed) {
+				$distanceSum += $clubMemberSpeed['distance'];
+				$timeSum += $clubMemberSpeed['distance']/$clubMemberSpeed['avgspeed'];
+			}
+			$clubMembersAvgSpeeds[$clubMemberId] = round($distanceSum/$timeSum, 2);
 		}
-		$output .= '<pre>'.print_r($clubMembersAvgSpeeds, true).'</pre>';
-		$maxAvgSpeed = 0;
-		$maxAvgSpeedAthlete = null;
+		echo '<pre>'.print_r($clubMembersAvgSpeeds, true).'</pre>';
 		$maxAvgSpeedAthleteId = null;
-		/*foreach ($athletesToClimb as $athleteId => $climbSum) {
-			if ($climbSum > $maxClimbSum) {
-				$maxClimbSum = $climbSum;
+		foreach ($athletesToClimb as $athleteId => $climbSum) {
+			if ($maxAvgSpeed > $this->value) {
+				$this->value = $maxAvgSpeed;
 				$maxClimbSumAthleteId = $athleteId;
 			}
 		}
 		foreach ($clubMembers as $clubMember) {
 			if ($clubMember['id'] == $maxClimbSumAthleteId) {
-				$maxClimbSumAthlete = &$clubMember;
+				$this->athlete = &$clubMember;
 				break;
 			}
-		}*/
+		}
 	}
 }

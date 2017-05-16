@@ -151,8 +151,9 @@ try {
 	// Максимальная средняя скорость
 	// (100+10)/(10/40+100/20)=110/5,25
 	// 20,95 км/ч
-	$medalAvgSpeed = new MedalMaxSpeed();
+	$medalAvgSpeed = new MedalAvgSpeed();
 	$medalAvgSpeed->calc($clubActivities, $clubMembers);
+	$medalAvgSpeed->value = $stravastat->convertSpeed($medalAvgSpeed->value);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'medal' => $medalAvgSpeed,
 	]);
@@ -245,8 +246,7 @@ try {
 	]);
 	echo $output;
 
-	$output = str_replace('<base href="/" />', '<base href="https://quasi-art.ru/stravastat/" />', $output);
-	file_put_contents(BASE_PATH.'reports/report_'.$preset['CLUB_ID'].'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
+	$stravastat->saveReport($output, $preset['CLUB_ID'], $period);
 } catch(Exception $e) {
     print $e->getMessage();
 }
