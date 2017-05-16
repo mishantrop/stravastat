@@ -1,7 +1,7 @@
 <?php
 $time_start = round(microtime(true), 4);
 set_time_limit(360);
-define('BASE_PATH', __DIR__.'/');
+define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
 define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
 switch (ENVIRONMENT)
 {
@@ -53,7 +53,7 @@ foreach ($autoload['model'] as $model) {
 	if (!file_exists(BASE_PATH.'models/'.$model.'.php')) {
 		die('Model '.$model.'does not exists');
 	} else {
-		include 'models/'.$model.'.php';
+		include BASE_PATH.'models/'.$model.'.php';
 	}
 }
 
@@ -64,11 +64,10 @@ use Strava\API\Service\REST;
 
 try {
 	$stravastat = new StravaStat();
-
 	// StravaPHP
-    $adapter = new Pest('https://www.strava.com/api/v3');
-    $service = new REST($config['ACCESS_TOKEN'], $adapter);
-    $stravastat->client = new Client($service);
+    $stravastat->adapter = new Pest('https://www.strava.com/api/v3');
+    $stravastat->service = new REST($config['ACCESS_TOKEN'], $stravastat->adapter);
+    $stravastat->client = new Client($stravastat->service);
 
 	$loader = new Twig_Loader_Filesystem(BASE_PATH.'assets/templates');
 	$stravastat->parser = new Twig_Environment($loader, [
@@ -101,16 +100,16 @@ try {
 	$output = '';
 	
 	// Club
-	$club = $stravastat->client->getClub($preset['CLUB_ID'], $useCache);
+	$club = $stravastat->getClub($preset['CLUB_ID'], $useCache);
 	
 	// Athletes
 	$athletesBlacklist = []; // Ids
-	$clubMembers = $stravastat->client->getClubMembers($preset['CLUB_ID'], $useCache);
+	$clubMembers = $stravastat->getClubMembers($preset['CLUB_ID'], $useCache);
 	$clubMembers = $stravastat->filterClubMembersByBlacklist($clubMembers, $athletesBlacklist);
 	$clubMembers = $stravastat->processAvatars($clubMembers);
 
 	// Activities
-	$clubActivities = $stravastat->client->getClubActivities($preset['CLUB_ID'], $useCache);
+	$clubActivities = $stravastat->getClubActivities($preset['CLUB_ID'], $useCache);
 	$clubActivities = $stravastat->filterClubActivities($clubActivities, ['period' => $period]);
 	$clubActivities = $stravastat->fillActivitiesAthletes($clubActivities, $clubMembers);
 

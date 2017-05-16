@@ -1,6 +1,6 @@
 <?php
-define('BASE_PATH', __DIR__.'/');
-define('TEMPLATES_PATH', __DIR__.'/assets/images/templates/');
+define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
+define('TEMPLATES_PATH', BASE_PATH.'/assets/images/templates/');
 define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
 switch (ENVIRONMENT)
 {

@@ -58,6 +58,7 @@ class StravaStat {
 	}
 
 	public function getClub($clubId, $useCache) {
+		file_put_contents($this->basePath.'cache/club', 'club');
 		if ($useCache && file_exists($this->basePath.'cache/club.json')) {
 			$club = json_decode(file_get_contents('cache/club.json'), true);
 		} else {
@@ -87,7 +88,7 @@ class StravaStat {
 		} else {
 			for ($i = 1; $i <= 10; $i++) {
 				try {
-					$activities = $stravastat->client->getClubActivities($clubId, $i, 200);
+					$activities = $this->client->getClubActivities($clubId, $i, 200);
 				} catch (Pest_BadRequest $e) {
 					$response = json_decode($e->getMessage());
 				}

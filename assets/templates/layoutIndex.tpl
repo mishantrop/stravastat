@@ -19,7 +19,7 @@
 	</div>
 	
 	<div class="container">
-    	<form action="main.php" method="post">
+    	<form action="controllers/main.php" method="post">
 			<div class="form-group">
 				<label>Club</label>
 				<select name="club">
