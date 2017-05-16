@@ -142,7 +142,7 @@ try {
 	]);
 	
 	// Суммарный подъём [id => climb]
-	$medalMaxClimb = new MedalMaxSpeed();
+	$medalMaxClimb = new MedalMaxClimb();
 	$medalMaxClimb->calc($clubActivities, $clubMembers);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'medal' => $medalMaxClimb,

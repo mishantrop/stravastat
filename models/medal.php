@@ -167,16 +167,16 @@ class MedalAvgSpeed implements Medal {
 			}
 			$clubMembersAvgSpeeds[$clubMemberId] = round($distanceSum/$timeSum, 2);
 		}
-		echo '<pre>'.print_r($clubMembersAvgSpeeds, true).'</pre>';
-		$maxAvgSpeedAthleteId = null;
-		foreach ($athletesToClimb as $athleteId => $climbSum) {
-			if ($maxAvgSpeed > $this->value) {
-				$this->value = $maxAvgSpeed;
-				$maxClimbSumAthleteId = $athleteId;
+		//echo '<pre>'.print_r($clubMembersSpeeds, true).'</pre>';
+		//echo '<pre>'.print_r($clubMembersAvgSpeeds, true).'</pre>';
+		foreach ($clubMembersAvgSpeeds as $athleteId => $avgSpeed) {
+			if ($avgSpeed > $this->value) {
+				$this->value = $avgSpeed;
+				$avgSpeedAthleteId = $athleteId;
 			}
 		}
 		foreach ($clubMembers as $clubMember) {
-			if ($clubMember['id'] == $maxClimbSumAthleteId) {
+			if ($clubMember['id'] == $avgSpeedAthleteId) {
 				$this->athlete = &$clubMember;
 				break;
 			}
