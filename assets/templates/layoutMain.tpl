@@ -35,9 +35,7 @@
 				2017
 			</div>
 			<div>
-				<div>Получение данных: {{ td }} s</div>
-				<div>Расчёты: {{ tc }} s</div>
-				<div>Общее время: {{ t }} s</div>
+				<div>Время: {{ t }} s</div>
 				<div>Память: {{ m }}</div>
 			</div>
 		</footer>

@@ -1,12 +1,12 @@
 <div class="pedestal-item col s12 m4 l2">
-	<h2 class="pedestal-item__header">{{ title }}</h2>
-	<a href="https://www.strava.com/athletes/{{ athlete['id'] }}" class="pedestal-item__image-link">
-		<img src="{{ athlete['profile'] }}" class="pedestal-item__image" />
+	<h2 class="pedestal-item__header">{{ medal.title }}</h2>
+	<a href="https://www.strava.com/athletes/{{ medal.athlete['id'] }}" class="pedestal-item__image-link">
+		<img src="{{ medal.athlete['profile'] }}" class="pedestal-item__image" />
 	</a>
-	<a href="https://www.strava.com/athletes/{{ athlete['id'] }}" class="pedestal-item__username-link">
-		{{ athlete['firstname'] }} {{ athlete['lastname'] }}
+	<a href="https://www.strava.com/athletes/{{ medal.athlete['id'] }}" class="pedestal-item__username-link">
+		{{ medal.athlete['firstname'] }} {{ medal.athlete['lastname'] }}
 	</a>
 	<div class="pedestal-item__mark">
-		{{ value }} {{ units }}
+		{{ medal.value }} {{ medal.units }}
 	</div>
 </div>

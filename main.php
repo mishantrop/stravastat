@@ -44,6 +44,7 @@ $autoload = [
 	'model' => [
 		'activity',
 		'area',
+		'medal',
 		'ReportGenerator',
 		'stravastat',
 	],
@@ -67,7 +68,7 @@ try {
 	// StravaPHP
     $adapter = new Pest('https://www.strava.com/api/v3');
     $service = new REST($config['ACCESS_TOKEN'], $adapter);
-    $client = new Client($service);
+    $stravastat->client = new Client($service);
 
 	$loader = new Twig_Loader_Filesystem(BASE_PATH.'assets/templates');
 	$stravastat->parser = new Twig_Environment($loader, [
@@ -98,273 +99,62 @@ try {
 	$useCache = (isset($_POST['usecache']) && $_POST['usecache'] == 1);
 
 	$output = '';
-
-	$time_start_data = round(microtime(true), 4); // Time to get data
-	if ($useCache && file_exists('cache/club.json')) {
-    	$club = json_decode(file_get_contents('cache/club.json'), true);
-		if (!is_array($club)) {
-			die('Club cache is empty');
-		}
-	} else {
-		$club = $client->getClub($preset['CLUB_ID']);
-		file_put_contents('cache/club.json', json_encode($club, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-	}
 	
-	if ($useCache && file_exists('cache/athletes.json')) {
-		$clubMembers = json_decode(file_get_contents('cache/athletes.json'), true);
-		if (!is_array($clubMembers)) {
-			die('Athletes cache is empty');
-		}
-	} else {
-		$clubMembers = $client->getClubMembers($preset['CLUB_ID'], 1, 200);
-		file_put_contents('cache/athletes.json', json_encode($clubMembers, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-	}
+	// Club
+	$club = $stravastat->client->getClub($preset['CLUB_ID'], $useCache);
 	
-	// Ids of athletes
-	$athletesBlacklist = [];
+	// Athletes
+	$athletesBlacklist = []; // Ids
+	$clubMembers = $stravastat->client->getClubMembers($preset['CLUB_ID'], $useCache);
+	$clubMembers = $stravastat->filterClubMembersByBlacklist($clubMembers, $athletesBlacklist);
+	$clubMembers = $stravastat->processAvatars($clubMembers);
 
-	foreach ($clubMembers as $clubMemberIdx => $clubMember) {
-		/**
-		 * Если у пользователя нет аватарки, ставим ему статическую заглушку.
-		 * Если есть аватарка, то сохраняем её в кэш, чтобы каждый раз не обращаться к серверу стравы.
-		 */
-		if (substr_count($clubMembers[$clubMemberIdx]['profile'], 'http') <= 0) {
-			$clubMembers[$clubMemberIdx]['profile'] = 'assets/images/photo.jpg';
-		} else {
-			if (!file_exists(BASE_PATH.'cache/avatars/'.$clubMember['id'].'.jpg')) {
-				$avatarContent = file_get_contents($clubMembers[$clubMemberIdx]['profile']);
-				file_put_contents(BASE_PATH.'cache/avatars/'.$clubMember['id'].'.jpg', $avatarContent);
-			}
-			$clubMembers[$clubMemberIdx]['profile'] = 'cache/avatars/'.$clubMember['id'].'.jpg';
-		}
-	}
-
-	$clubActivities = [];
-	if ($useCache && file_exists('cache/activities.json')) {
-		$clubActivities = json_decode(file_get_contents('cache/activities.json'), true);
-		if (!is_array($clubActivities)) {
-			die('Activities cache is empty');
-		}
-	} else {
-		for ($i = 1; $i <= 10; $i++) {
-			try {
-				$activities = $client->getClubActivities($preset['CLUB_ID'], $i, 200);
-			} catch (Pest_BadRequest $e) {
-				$response = json_decode($e->getMessage());
-				$output .= 	$stravastat->parser->render('etc/spoiler.tpl', [
-						'title' => 'Exception',
-						'content' => (is_object($response)) ?
-									'<pre>'.print_r($response, true).'</pre>' :
-									'<pre>'.$e->getMessage().'</pre>',
-					]);
-			}
-			if (isset($activities) && is_array($activities)) {
-				if (count($activities) == 0) {
-					break;
-				}
-				$clubActivities = array_merge($clubActivities, $activities);
-			}
-		}
-		file_put_contents('cache/activities.json', json_encode($clubActivities, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-	}
-	/*foreach ($clubMembers as $clubMemberIdx => $clubMember) {
-		$memberActivities = $client->getAthleteActivities($period[1], $period[0], null, null);
-		$clubActivities = array_merge($clubActivities, $memberActivities);
-		//unset($memberActivities);
-	}*/
-
-	
-	$time_end_data = round(microtime(true), 4);
-	$time_start_calc = round(microtime(true), 4); // Time to calc results
-
-	$ignoredActivitiesByTime = [];
-	$ignoredActivitiesByWorkout = [];
-	$ignoredActivitiesByArea = [];
-	$ignoredActivitiesByFlagged = [];
-	foreach ($clubActivities as $idx => $clubActivity) {
-		// Filter by type (bicycles only!)
-		if ($clubActivity['workout_type'] != 10) {
-			$ignoredActivitiesByWorkout[] = &$clubActivities[$idx];
-			unset($clubActivities[$idx]);
-			continue;
-		}
-		if ($clubActivity['flagged'] == 1) {
-			$ignoredActivitiesByFlagged[] = &$clubActivities[$idx];
-			unset($clubActivities[$idx]);
-			continue;
-		}
-		// Filter by period
-		if (!$stravastat->reportGenerator->inRange(strtotime($clubActivity['start_date']), $period)) {
-			// $output .= '<p><a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].' ('.date('H:i d.m.Y', strtotime($clubActivity['start_date'])).')</a> does not match period</p>';
-			$ignoredActivitiesByTime[] = &$clubActivities[$idx];
-			unset($clubActivities[$idx]);
-			continue;
-		}
-		// Filter by area
-		if (!$stravastat->matchToArea($clubActivity)) {
-			//$output .= '<p>Activity <a href="https://www.strava.com/activities/'.$clubActivity['id'].'">'.$clubActivity['name'].'</a> does not match</p>';
-			$ignoredActivitiesByArea[] = &$clubActivities[$idx];
-			unset($clubActivities[$idx]);
-			continue;
-		}
-		foreach ($clubMembers as $clubMember) {
-			if ($clubMember['id'] == $clubActivity['athlete']['id']) {
-				$clubActivity['athlete'] = $clubMember;
-			}
-		}
-	}
+	// Activities
+	$clubActivities = $stravastat->client->getClubActivities($preset['CLUB_ID'], $useCache);
+	$clubActivities = $stravastat->filterClubActivities($clubActivities, ['period' => $period]);
+	$clubActivities = $stravastat->fillActivitiesAthletes($clubActivities, $clubMembers);
 
 	$output .= $stravastat->parser->render('clubs/club-bage.tpl', ['club' => $club]);
 
 	// Рекорд по общей дистанции
-	$athletesDistances = [];
-	foreach ($clubActivities as $clubActivity) {
-		$clubActivity = (array)$clubActivity;
-		if (!isset($athletesDistances[$clubActivity['athlete']['id']])) {
-			$athletesDistances[$clubActivity['athlete']['id']] = 0;
-		}
-		$athletesDistances[$clubActivity['athlete']['id']] += round((float)$clubActivity['distance'], 2);
-	}
-	$maxTotalDistance = 0;
-	$totalDistanceAthleteId = null;
-	$totalDistanceAthlete = null;
-	foreach ($athletesDistances as $athleteId => $distanceSum) {
-		if ((float)$distanceSum > (float)$maxTotalDistance) {
-			$maxTotalDistance = round((float)$distanceSum, 2);
-			$totalDistanceAthleteId = (int)$athleteId;
-		}
-	}
-	if ($totalDistanceAthleteId > 0) {
-		foreach ($clubMembers as $clubMember) {
-			if ($clubMember['id'] == $totalDistanceAthleteId) {
-				$totalDistanceAthlete = $clubMember;
-				break;
-			}
-		}
-	}
-
+	$medalTotalDistance = new MedalTotalDistance();
+	$medalTotalDistance->calc($clubActivities, $clubMembers);
+	$medalTotalDistance->value = $stravastat->convertDistance($medalTotalDistance->value);
 	$pedestalOutput = '';
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Общая дистанция',
-		'value' => $stravastat->convertDistance($maxTotalDistance),
-		'units' => 'км',
-		'athlete' => $totalDistanceAthlete,
+		'medal' => $medalTotalDistance,
 	]);
 
 	// Рекорд по самому длинному заезду
-	$maxDistance = 0;
-	$maxDistanceAthlete = null;
-	foreach ($clubActivities as $clubActivity) {
-		if ((float)$clubActivity['distance'] > $maxDistance) {
-			$maxDistance = round((float)$clubActivity['distance'], 2);
-			$maxDistanceAthlete = $clubActivity['athlete'];
-		}
-	}
-	if ($maxDistanceAthlete !== null) {
-		if (substr_count($maxDistanceAthlete['profile'], 'http') <= 0) {
-			$maxDistanceAthlete['profile'] = 'assets/images/photo.jpg';
-		}
-	}
+	$medalMaxDistance = new MedalMaxDistance();
+	$medalMaxDistance->calc($clubActivities, $clubMembers);
+	$medalMaxDistance->value = $stravastat->convertDistance($medalMaxDistance->value);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Самый длинный заезд',
-		'value' => $stravastat->convertDistance($maxDistance),
-		'units' => 'км',
-		'athlete' => $maxDistanceAthlete,
+		'medal' => $medalMaxDistance,
 	]);
 
 	// Рекорд скорости
-	$maxSpeed = 0;
-	$maxSpeedAthlete = null;
-	foreach ($clubActivities as $clubActivity) {
-		if ((float)$clubActivity['max_speed'] > $maxSpeed) {
-			$maxSpeed = round((float)$clubActivity['max_speed'], 2);
-			$maxSpeedAthlete = $clubActivity['athlete'];
-		}
-	}
-	if ($maxSpeedAthlete !== null) {
-		if (substr_count($maxSpeedAthlete['profile'], 'http') <= 0) {
-			$maxSpeedAthlete['profile'] = 'assets/images/photo.jpg';
-		}
-	}
+	$medalMaxSpeed = new MedalMaxSpeed();
+	$medalMaxSpeed->calc($clubActivities, $clubMembers);
+	$medalMaxSpeed->value = $stravastat->convertSpeed($medalMaxSpeed->value);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Максимальная скорость',
-		'value' => $stravastat->convertSpeed($maxSpeed),
-		'units' => 'км/ч',
-		'athlete' => $maxSpeedAthlete,
+		'medal' => $medalMaxSpeed,
 	]);
 	
 	// Суммарный подъём [id => climb]
-	$athletesToClimb = [];
-	foreach ($clubMembers as $clubMember) {
-		$athletesToClimb[$clubMember['id']] = 0.0;
-		foreach ($clubActivities as $clubActivity) {
-			if ($clubActivity['athlete']['id'] == $clubMember['id']) {
-				$athletesToClimb[$clubMember['id']] += round((float)$clubActivity['total_elevation_gain'], 2);
-			}
-		}
-	}
-	$maxClimbSum = 0;
-	$maxClimbSumAthlete = null;
-	$maxClimbSumAthleteId = null;
-	foreach ($athletesToClimb as $athleteId => $climbSum) {
-		if ($climbSum > $maxClimbSum) {
-			$maxClimbSum = $climbSum;
-			$maxClimbSumAthleteId = $athleteId;
-		}
-	}
-	foreach ($clubMembers as $clubMember) {
-		if ($clubMember['id'] == $maxClimbSumAthleteId) {
-			$maxClimbSumAthlete = &$clubMember;
-			break;
-		}
-	}
+	$medalMaxClimb = new MedalMaxSpeed();
+	$medalMaxClimb->calc($clubActivities, $clubMembers);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Подъём',
-		'value' => (int)$maxClimbSum,
-		'units' => 'м',
-		'athlete' => $maxClimbSumAthlete,
+		'medal' => $medalMaxClimb,
 	]);
 	
 	// Максимальная средняя скорость
 	// (100+10)/(10/40+100/20)=110/5,25
 	// 20,95 км/ч
-	$clubMembersSpeeds = [];
-	$clubMembersAvgSpeeds = [];
-	foreach ($clubActivities as $clubActivity) { //
-		$record = [
-			'distance' => round((float)$clubActivity['distance'], 2),
-			'avgspeed' => round((float)$clubActivity['average_speed'], 2),
-		];
-		if (!isset($clubMembersSpeeds[$clubActivity['athlete']['id']])) {
-			$clubMembersSpeeds[$clubActivity['athlete']['id']] = [$record];
-		} else {
-			$clubMembersSpeeds[$clubActivity['athlete']['id']][] = $record;
-		}
-	}
-	foreach ($clubMembersSpeeds as $clubMemberId => $clubMemberSpeeds) {
-		$clubMembersAvgSpeeds[$clubMemberId] = round(rand(2000, 4000)/100, 2);
-	}
-	$output .= '<pre>'.print_r($clubMembersAvgSpeeds, true).'</pre>';
-	$maxAvgSpeed = 0;
-	$maxAvgSpeedAthlete = null;
-	$maxAvgSpeedAthleteId = null;
-	foreach ($athletesToClimb as $athleteId => $climbSum) {
-		if ($climbSum > $maxClimbSum) {
-			$maxClimbSum = $climbSum;
-			$maxClimbSumAthleteId = $athleteId;
-		}
-	}
-	foreach ($clubMembers as $clubMember) {
-		if ($clubMember['id'] == $maxClimbSumAthleteId) {
-			$maxClimbSumAthlete = &$clubMember;
-			break;
-		}
-	}
+	$medalAvgSpeed = new MedalMaxSpeed();
+	$medalAvgSpeed->calc($clubActivities, $clubMembers);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
-		'title' => 'Макс. ср. скорость',
-		'value' => (int)$maxAvgSpeed,
-		'units' => 'м',
-		'athlete' => $maxAvgSpeedAthlete,
+		'medal' => $medalAvgSpeed,
 	]);
 	
 	// Pedestal
@@ -378,28 +168,34 @@ try {
 	// Medals
 	$medalsOutput = '';
 	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
-		'athlete' => $totalDistanceAthlete,
+		'athlete' => $medalTotalDistance->athlete,
 		'discipline' => 'totaldistance',
-		'value' => $stravastat->convertDistance($maxTotalDistance),
-		'units' => 'км',
+		'value' => $medalTotalDistance->value,
+		'units' => $medalTotalDistance->units,
 	]);
 	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
-		'athlete' => $maxDistanceAthlete,
+		'athlete' => $medalMaxDistance->athlete,
 		'discipline' => 'maxdistance',
-		'value' => $stravastat->convertDistance($maxDistance),
-		'units' => 'км',
+		'value' => $medalMaxDistance->value,
+		'units' => $medalMaxDistance->units,
 	]);
 	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
-		'athlete' => $maxSpeedAthlete,
+		'athlete' => $medalMaxSpeed->athlete,
 		'discipline' => 'maxspeed',
-		'value' => $stravastat->convertSpeed($maxSpeed),
-		'units' => 'км/ч',
+		'value' => $medalMaxSpeed->value,
+		'units' => $medalMaxSpeed->units,
 	]);
 	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
-		'athlete' => $maxClimbSumAthlete,
+		'athlete' => $medalMaxClimb->athlete,
 		'discipline' => 'climb',
-		'value' => (int)$maxClimbSum,
-		'units' => 'м',
+		'value' => $medalMaxClimb->value,
+		'units' => $medalMaxClimb->units,
+	]);
+	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
+		'athlete' => $medalAvgSpeed->athlete,
+		'discipline' => 'avgspeed',
+		'value' => $medalAvgSpeed->value,
+		'units' => $medalAvgSpeed->units,
 	]);
 	$output .= $stravastat->parser->render('medals/medalsWrapper.tpl', [
 		'output' => $medalsOutput,
@@ -437,51 +233,14 @@ try {
 	$output .= '<script>window.mapActivities = ['.$activitiesJsOutput.'];</script>';
 	$output .= $stravastat->parser->render('activities/activitiesMap.tpl', []);
 
-	// Raw Responses
-	if (isset($_POST['debug'])) {
-		$output .= '<h2>Исходные данные</h2>';
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Club',
-			'content' => '<pre>'.print_r($club, true).'</pre>'
-		]);
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Athletes',
-			'content' => '<pre>'.print_r($clubMembers, true).'</pre>'
-		]);
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Activities',
-			'content' => '<pre>'.print_r($clubActivities, true).'</pre>'
-		]);
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Activities Ignored by time ('.count($ignoredActivitiesByTime).')',
-			'content' => '<pre>'.print_r($ignoredActivitiesByTime, true).'</pre>'
-		]);
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Activities Ignored by workout type ('.count($ignoredActivitiesByWorkout).')',
-			'content' => '<pre>'.print_r($ignoredActivitiesByWorkout, true).'</pre>'
-		]);
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Activities Ignored by area ('.count($ignoredActivitiesByArea).')',
-			'content' => '<pre>'.print_r($ignoredActivitiesByArea, true).'</pre>'
-		]);
-		$output .= $stravastat->parser->render('etc/spoiler.tpl', [
-			'title' => 'Activities Ignored by flagged ('.count($ignoredActivitiesByFlagged).')',
-			'content' => '<pre>'.print_r($ignoredActivitiesByFlagged, true).'</pre>'
-		]);
-	}
-
 	$time_end = round(microtime(true), 4);
 	$execution_time = ($time_end - $time_start);
-	$execution_time_data = ($time_end_data - $time_start_data);
-	$execution_time_calc = ($time_end_calc - $time_start_calc);
 
 	// Main layout
 	$output = $stravastat->parser->render('layoutMain.tpl', [
 		'output' => $output,
 		'm' => convertMemory(memory_get_usage()),
 		't' => $execution_time,
-		'td' => $execution_time_data,
-		'tc' => $execution_time_calc,
 		'assets_version' => time(),
 	]);
 	echo $output;
