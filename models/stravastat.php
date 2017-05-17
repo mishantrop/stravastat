@@ -1,5 +1,5 @@
 <?php
-namespace StravaStat\StravaStat;
+namespace StravaStat;
 
 class StravaStat {
 	public $client = null;

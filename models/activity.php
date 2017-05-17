@@ -1,5 +1,5 @@
 <?php
-namespace Stravastat\Activity;
+namespace Stravastat;
 
 class Activity {
 	public function __construct() {

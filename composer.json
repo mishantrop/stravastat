@@ -14,6 +14,7 @@
         "monolog/monolog": "^1.22",
         "twig/twig": "^2.0",
         "catfan/Medoo": "^1.2",
-        "stil/gd-text": "^1.1"
+        "stil/gd-text": "^1.1",
+        "symfony/routing": "^3.2"
     }
 }

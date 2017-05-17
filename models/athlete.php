@@ -1,4 +1,6 @@
 <?php
+namespace StravaStat;
+
 class Athlete {
 	public function __construct() {
 		

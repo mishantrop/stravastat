@@ -19,12 +19,6 @@ if (!file_exists(BASE_PATH.'vendor/autoload.php')) {
 	include BASE_PATH.'vendor/autoload.php';
 }
 
-/*include BASE_PATH.'vendor/stil/gd-text/src/Box.php';
-include BASE_PATH.'vendor/stil/gd-text/src/Color.php';
-include BASE_PATH.'vendor/stil/gd-text/src/HorizontalAlignment.php';
-include BASE_PATH.'vendor/stil/gd-text/src/TextWrapping.php';
-include BASE_PATH.'vendor/stil/gd-text/src/VerticalAlignment.php';*/
-
 use GDText\Box;
 use GDText\Color;
 

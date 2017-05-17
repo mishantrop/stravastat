@@ -1,4 +1,6 @@
 <?php
+namespace StravaStat;
+
 class Area {
 	private $startLat;
 	private $startLng;

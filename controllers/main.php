@@ -3,9 +3,15 @@ use Strava\API\Client;
 use Strava\API\Exception;
 use Strava\API\Service\REST;
 
+use StravaStat\Activity;
+use StravaStat\Area;
+use StravaStat\Athlete;
 use StravaStat\StravaStat;
 use StravaStat\ReportGenerator;
-use StravaStat\Medal;
+use StravaStat\MedalMaxDistance;
+use StravaStat\MedalTotalDistance;
+use StravaStat\MedalAvgSpeed;
+use StravaStat\MedalMaxClimb;
 
 $time_start = round(microtime(true), 4);
 set_time_limit(360);
@@ -45,11 +51,11 @@ if (!isset($preset['CLUB_ID'])) {
 
 $autoload = [
 	'model' => [
-		'activity',
-		'area',
-		'medal',
+		'Activity',
+		'Area',
+		'Medal',
 		'ReportGenerator',
-		'stravastat',
+		'StravaStat',
 	],
 ];
 foreach ($autoload['model'] as $model) {
@@ -129,12 +135,12 @@ try {
 	]);
 
 	// Рекорд скорости
-	$medalMaxSpeed = new MedalMaxSpeed();
+	/*$medalMaxSpeed = new MedalMaxSpeed();
 	$medalMaxSpeed->calc($clubActivities, $clubMembers);
 	$medalMaxSpeed->value = $stravastat->convertSpeed($medalMaxSpeed->value);
 	$pedestalOutput .= $stravastat->parser->render('pedestal/pedestalItem.tpl', [
 		'medal' => $medalMaxSpeed,
-	]);
+	]);*/
 	
 	// Суммарный подъём [id => climb]
 	$medalMaxClimb = new MedalMaxClimb();
@@ -175,12 +181,12 @@ try {
 		'value' => $medalMaxDistance->value,
 		'units' => $medalMaxDistance->units,
 	]);
-	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
+	/*$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
 		'athlete' => $medalMaxSpeed->athlete,
 		'discipline' => 'maxspeed',
 		'value' => $medalMaxSpeed->value,
 		'units' => $medalMaxSpeed->units,
-	]);
+	]);*/
 	$medalsOutput .= $stravastat->parser->render('medals/medalsItem.tpl', [
 		'athlete' => $medalMaxClimb->athlete,
 		'discipline' => 'climb',

@@ -1,5 +1,5 @@
 <?php
-namespace StravaStat\ReportGenerator;
+namespace StravaStat;
 
 class ReportGenerator {
 	private $timestamp;

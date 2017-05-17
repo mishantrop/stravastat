@@ -1,5 +1,5 @@
 <?php
-namespace StravaStat\Medal;
+namespace StravaStat;
 
 interface Medal {
 	public function calc($clubActivities, $clubMembers);
@@ -138,7 +138,7 @@ class MedalAvgSpeed implements Medal {
 	public $athlete;
 	
 	public function __construct() {
-		$this->title = 'Максимальная средняя скорость';
+		$this->title = 'Средняя скорость';
 		$this->value = 0;
 		$this->units = 'км/ч';
 		$this->athlete = null;
