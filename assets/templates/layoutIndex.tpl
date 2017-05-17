@@ -21,7 +21,7 @@
 	
 	<div class="container">
 		<div class="run-form">
-	    	<form action="controllers/main.php" method="post" class="run-form__form">
+	    	<form action="main" method="post" class="run-form__form">
 				<div class="form-group">
 					<label>Club</label>
 					<select name="club">

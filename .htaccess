@@ -1,1 +1,7 @@
 SetEnv SS_ENV development
+
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?q=$1 [QSA,L]

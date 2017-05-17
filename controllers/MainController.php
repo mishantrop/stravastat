@@ -15,7 +15,6 @@ use StravaStat\MedalMaxClimb;
 
 $time_start = round(microtime(true), 4);
 set_time_limit(360);
-define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
 define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
 switch (ENVIRONMENT)
 {

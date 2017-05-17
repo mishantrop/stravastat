@@ -6,6 +6,7 @@ node_modules
 reports/report*.html
 vendor
 access.php
+app.php
 main.html
 preset.php
 test.php
