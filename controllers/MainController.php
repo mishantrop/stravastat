@@ -15,23 +15,7 @@ use StravaStat\MedalMaxClimb;
 
 $time_start = round(microtime(true), 4);
 set_time_limit(360);
-define('ENVIRONMENT', isset($_SERVER['SS_ENV']) ? $_SERVER['SS_ENV'] : 'development');
-switch (ENVIRONMENT)
-{
-	case 'development':
-		error_reporting(-1);
-		ini_set('display_errors', 1);
-	break;
-	case 'production':
 
-	break;
-}
-
-if (!file_exists(BASE_PATH.'vendor/autoload.php')) {
-	die('Install Composer and packages from composer.json');
-} else {
-	include BASE_PATH.'vendor/autoload.php';
-}
 if (!file_exists(BASE_PATH.'access.php')) {
 	die('Copy access.example.php to access.php and get fill one');
 } else {
