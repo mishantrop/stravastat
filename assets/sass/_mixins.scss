@@ -1,0 +1,45 @@
+@mixin outline() {
+    &:focus {
+        outline: none;
+    }
+}
+
+@mixin outline-input() {
+    &:focus {
+        border: 1px solid #fff;
+        outline: none;
+    }
+}
+
+@mixin placeholder() {
+    &::-webkit-input-placeholder {
+        color: #aaa;
+    }
+    &::-moz-placeholder {
+        color: #aaa;
+		text-overflow: ellipsis;
+    }
+    &:-moz-placeholder {
+        color: #aaa;
+	    text-overflow: ellipsis;
+    }
+    &:-ms-input-placeholder {
+        color: #aaa;
+		text-overflow: ellipsis;
+    }
+    &[placeholder] {
+        text-overflow: ellipsis;
+    }
+    &:focus::-webkit-input-placeholder {
+        color: transparent
+    }
+    &:focus::-moz-placeholder {
+        color: transparent
+    }
+    &:focus:-moz-placeholder {
+        color: transparent
+    }
+    &:focus:-ms-input-placeholder {
+        color: transparent
+    }
+}

@@ -11,43 +11,53 @@
     <link rel="icon" href="/favicon.ico" />
     <link href="assets/css/main.min.css?v={{ assets_version }}" rel="stylesheet" />
 </head>
-<body>
+<body class="body">
 	<div class="container">
-		<header>
-			<h1>StravaStat</h1>
+		<header class="header">
+			<h1 class="header__header">StravaStat</h1>
+			<div class="header__subheader">If you rides not on Strava it didn't happen</div>
 		</header>
 	</div>
 	
 	<div class="container">
-    	<form action="controllers/main.php" method="post">
-			<div class="form-group">
-				<label>Club</label>
-				<select name="club">
-					<option value="198259" selected>ВелоСокол</option>
-					<option value="87309">ВелоВологда</option>
-					<option value="129073">ВелоПитер</option>
-				</select>
-			</div>
-			
-			<div class="form-group">
-				<label>Period</label>
-				<input name="start" value="{{ start }}" placeholder="dd.mm.yyyy" /> - <input name="end" value="{{ end }}" placeholder="dd.mm.yyyy" />
-			</div>
-			
-			<div class="form-group">
-				<label for="debug">Debug</label>
-				<input name="debug" id="debug" value="1" type="checkbox" />
-			</div>
-			
-			<div class="form-group">
-				<label for="debug">Use cache</label>
-				<input name="usecache" id="usecache" value="1" type="checkbox" />
-			</div>
-			
-			<div class="form-group">
-				<button type="submit">Run!</button>
-			</div>
-		</form>
+		<div class="run-form">
+	    	<form action="controllers/main.php" method="post" class="run-form__form">
+				<div class="form-group">
+					<label>Club</label>
+					<select name="club">
+						<option value="198259" selected>ВелоСокол</option>
+						<option value="87309">ВелоВологда</option>
+						<option value="129073">ВелоПитер</option>
+					</select>
+				</div>
+				
+				<div class="form-group">
+					<label>Period</label>
+					<div class="row">
+						<div class="col s12 m6">
+							<input name="start" value="{{ start }}" placeholder="dd.mm.yyyy" class="form-control" />
+						</div>
+						<div class="col s12 m6">
+							<input name="end" value="{{ end }}" placeholder="dd.mm.yyyy" class="form-control" />
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label for="debug">Debug</label>
+					<input name="debug" id="debug" value="1" type="checkbox" />
+				</div>
+				
+				<div class="form-group">
+					<label for="debug">Use cache</label>
+					<input name="usecache" id="usecache" value="1" type="checkbox" />
+				</div>
+				
+				<div class="form-group">
+					<button type="submit"class="run-form__submit">Run!</button>
+				</div>
+			</form>
+		</div>
 	</div>
 	
 	<div class="container">

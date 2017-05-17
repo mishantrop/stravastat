@@ -1,0 +1,43 @@
+.run-form {
+    margin: 0 0 1rem 0;
+    padding: 1rem 1rem;
+    @media only screen and (max-width: 480px) {
+        padding: 20px 20px;
+    }
+    @media only screen and (max-width: 360px) {
+        padding: 20px 20px;
+    }
+    &__form {
+        margin: 0 0 0 0;
+        .form-group {
+            padding: 5px;
+        }
+        .form-control {
+            resize: none;
+            width: 100%;
+            @include outline-input();
+            @include placeholder();
+        }
+    }
+    &__submit {
+		background-color: #fc4c02;
+        border: none;
+        color: #fff;
+        font-size: 15px;
+        font-weight: normal;
+        padding: 11px 28px;
+        text-transform: uppercase;
+        width: 100%;
+        &:active {
+			background-color: #ce3d00;
+            outline: none;
+        }
+        &:focus {
+			background-color: #ff611e;
+            outline: none;
+        }
+        &:hover {
+			background-color: #ff611e;
+		}
+    }
+}

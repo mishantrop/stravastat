@@ -11,6 +11,7 @@ body {
 	background-color: #222;
 	& > .container {
 		background-color: #fff;
+		overflow: hidden;
 	}
 }
 
@@ -34,7 +35,9 @@ body {
 @import "_club.scss";
 @import "_header.scss";
 @import "_medals.scss";
+@import "_mixins.scss";
 @import "_pedestal.scss";
 @import "_report.scss";
+@import "_run-form.scss";
 @import "_semispoiler.scss";
 @import "_spoiler.scss";
