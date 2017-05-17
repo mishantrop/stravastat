@@ -1,11 +1,14 @@
 <?php
+namespace StravaStat\StravaStat;
+
 class StravaStat {
 	public $client = null;
 	public $parser = null;
 	public $area = null;
 	public $reportGenerator = null;
 	
-	public function __construct() {
+	public function __construct()
+	{
 		if (defined('BASE_PATH')) {
 		    $this->basePath = BASE_PATH;
 		} else {
@@ -13,17 +16,20 @@ class StravaStat {
 		}
 	}
 	
-	public function convertSpeed($speed) {
+	public function convertSpeed($speed)
+	{
 		$speed = round((float)$speed, 2);
 		return round($speed / 0.2777777777777778, 2);
 	}
 	
-	public function convertDistance($distance) {
+	public function convertDistance($distance)
+	{
 		$distance = round((float)$distance, 2);
 		return round($distance / 1000, 2);
 	}
 	
-	public function convertTime($time) {
+	public function convertTime($time)
+	{
 		$time = (int)$time;
 	    $output = '';
 		
@@ -51,16 +57,23 @@ class StravaStat {
 	    return $output;
 	}
 
-	public function matchToArea($activity) {
+	public function convertMemory($size)
+	{
+	    $unit=array('b','kb','mb','gb','tb','pb');
+	    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+	}
+
+	public function matchToArea($activity)
+	{
 		$lat = (float)$activity['start_latlng'][0];
 		$lng = (float)$activity['start_latlng'][1];
 		return $this->area->matchToArea($lat, $lng);
 	}
 
-	public function getClub($clubId, $useCache) {
-		file_put_contents($this->basePath.'cache/club', 'club');
+	public function getClub($clubId, $useCache)
+	{
 		if ($useCache && file_exists($this->basePath.'cache/club.json')) {
-			$club = json_decode(file_get_contents('cache/club.json'), true);
+			$club = json_decode(file_get_contents($this->basePath.'cache/club.json'), true);
 		} else {
 			$club = $this->client->getClub($clubId);
 			file_put_contents($this->basePath.'cache/club.json', json_encode($club, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
@@ -68,9 +81,10 @@ class StravaStat {
 		return $club;
 	}
 	
-	public function getClubMembers($clubId, $useCache) {
+	public function getClubMembers($clubId, $useCache)
+	{
 		if ($useCache && file_exists($this->basePath.'cache/athletes.json')) {
-			$clubMembers = json_decode(file_get_contents('cache/athletes.json'), true);
+			$clubMembers = json_decode(file_get_contents($this->basePath.'cache/athletes.json'), true);
 		} else {
 			$clubMembers = $this->client->getClubMembers($clubId, 1, 200);
 			file_put_contents($this->basePath.'cache/athletes.json', json_encode($clubMembers, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
@@ -78,7 +92,8 @@ class StravaStat {
 		return $clubMembers;
 	}
 
-	public function getClubActivities($clubId, $useCache) {
+	public function getClubActivities($clubId, $useCache)
+	{
 		$clubActivities = [];
 		if ($useCache && file_exists($this->basePath.'cache/activities.json')) {
 			$clubActivities = json_decode(file_get_contents($this->basePath.'cache/activities.json'), true);
@@ -104,7 +119,8 @@ class StravaStat {
 		return $clubActivities;
 	}
 
-	public function filterClubMembersByBlacklist($clubMembers, $blackList) {
+	public function filterClubMembersByBlacklist($clubMembers, $blackList)
+	{
 		foreach ($clubMembers as $clubMemberIdx => $clubMember) {
 			if (in_array($clubMember['id'], $blackList)) {
 				unset($clubMembers[$clubMemberIdx]);
@@ -113,7 +129,8 @@ class StravaStat {
 		return $clubMembers;
 	}
 	
-	public function filterClubActivities($clubActivities, $criteria = []) {
+	public function filterClubActivities($clubActivities, $criteria = [])
+	{
 		foreach ($clubActivities as $idx => $clubActivity) {
 			// Filter by type (bicycles only!)
 			if ($clubActivity['workout_type'] != 10) {
@@ -138,7 +155,8 @@ class StravaStat {
 		return $clubActivities;
 	}
 	
-	public function fillActivitiesAthletes($clubActivities, $clubMembers) {
+	public function fillActivitiesAthletes($clubActivities, $clubMembers)
+	{
 		foreach ($clubActivities as $idx => $clubActivity) {
 			foreach ($clubMembers as $clubMember) {
 				if ($clubMember['id'] == $clubActivity['athlete']['id']) {
@@ -149,7 +167,8 @@ class StravaStat {
 		return $clubActivities;
 	}
 	
-	public function processAvatars($clubMembers) {
+	public function processAvatars($clubMembers)
+	{
 		foreach ($clubMembers as $clubMemberIdx => $clubMember) {
 			/**
 			 * Если у пользователя нет аватарки, ставим ему статическую заглушку.
@@ -168,7 +187,8 @@ class StravaStat {
 		return $clubMembers;
 	}
 
-	public function saveReport($output, $clubId, $period) {
+	public function saveReport($output, $clubId, $period)
+	{
 		$output = str_replace('<base href="/" />', '<base href="https://quasi-art.ru/stravastat/" />', $output);
 		file_put_contents(BASE_PATH.'reports/report_'.$clubId.'_'.date('dmY', $period[0]).'-'.date('dmY', $period[1]).'.html', $output);
 	}

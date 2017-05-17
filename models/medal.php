@@ -1,4 +1,6 @@
 <?php
+namespace StravaStat\Medal;
+
 interface Medal {
 	public function calc($clubActivities, $clubMembers);
 }

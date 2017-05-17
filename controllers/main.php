@@ -1,4 +1,12 @@
 <?php
+use Strava\API\Client;
+use Strava\API\Exception;
+use Strava\API\Service\REST;
+
+use StravaStat\StravaStat;
+use StravaStat\ReportGenerator;
+use StravaStat\Medal;
+
 $time_start = round(microtime(true), 4);
 set_time_limit(360);
 define('BASE_PATH', $_SERVER['DOCUMENT_ROOT'].'/');
@@ -12,11 +20,6 @@ switch (ENVIRONMENT)
 	case 'production':
 
 	break;
-}
-
-function convertMemory($size) {
-    $unit=array('b','kb','mb','gb','tb','pb');
-    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
 }
 
 if (!file_exists(BASE_PATH.'vendor/autoload.php')) {
@@ -57,11 +60,6 @@ foreach ($autoload['model'] as $model) {
 	}
 }
 
-//use Pest;
-use Strava\API\Client;
-use Strava\API\Exception;
-use Strava\API\Service\REST;
-
 try {
 	$stravastat = new StravaStat();
 	// StravaPHP
@@ -84,12 +82,10 @@ try {
 
 	$stravastat->reportGenerator = new ReportGenerator(time());
 
-	$period = $stravastat->reportGenerator->getLastWeekRange();
 	if (isset($_POST['start']) && isset($_POST['end'])) {
-		$period = [
-			strtotime($_POST['start']),
-			strtotime($_POST['end']) + 86400 - 1
-		];
+		$period = $stravastat->reportGenerator->createRange($_POST['start'], $_POST['end']);
+	} else {
+		$period = $stravastat->reportGenerator->getLastWeekRange();
 	}
 	
 	if (isset($_POST['club'])) {
@@ -239,7 +235,7 @@ try {
 	// Main layout
 	$output = $stravastat->parser->render('layoutMain.tpl', [
 		'output' => $output,
-		'm' => convertMemory(memory_get_usage()),
+		'm' => $stravastat->convertMemory(memory_get_usage()),
 		't' => $execution_time,
 		'assets_version' => time(),
 	]);

@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c12bfa7138a84d33c9ad51bfa3c619c3",
-    "content-hash": "ebc7146e7c443e59daddcf772035c648",
+    "hash": "7522216df89371d7b79d0e40bc00a1f7",
+    "content-hash": "e36f8a3d829fd829e3512e015b5627db",
     "packages": [
         {
             "name": "basvandorst/stravaphp",
@@ -664,6 +664,41 @@
                 "psr-3"
             ],
             "time": "2016-10-10 12:19:37"
+        },
+        {
+            "name": "stil/gd-text",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stil/gd-text.git",
+                "reference": "ae2bd5736dbd6d45a4af1e4b9c573dd4d8d06b11"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stil/gd-text/zipball/ae2bd5736dbd6d45a4af1e4b9c573dd4d8d06b11",
+                "reference": "ae2bd5736dbd6d45a4af1e4b9c573dd4d8d06b11",
+                "shasum": ""
+            },
+            "require": {
+                "ext-gd": "*",
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "GDText\\": "src/",
+                    "GDText\\Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A class drawing multiline and aligned text on pictures. Uses GD extension.",
+            "time": "2016-07-22 22:31:04"
         },
         {
             "name": "symfony/polyfill-mbstring",
