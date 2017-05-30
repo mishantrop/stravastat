@@ -109,7 +109,7 @@ function initActivitiesMap() {
             });
             google.maps.event.addListener(marker, 'click', (function(marker, idx) {
                 return function() {
-                    infowindow.setContent(window.mapActivities[idx].title);
+                    infowindow.setContent(window.mapActivities[idx].content);
                     infowindow.setOptions({
                         maxWidth: 256
                     });
