@@ -210,14 +210,9 @@ try {
 			'activity' => $clubActivity,
 		]);
 		$activitiesJsOutputRaw = new StdClass();
-		$activitiesJsOutputRaw->content = '<div>
-			<a href="https://www.strava.com/athletes/'.$clubActivity['athlete']['id'].'" title="" style="display: inline-block; float: left; margin: 0 5px 0 0;">
-				<img src="'.$clubActivity['athlete']['profile'].'" alt="" style="width: 50px; height: 50px; border-radius: 50%;" />
-			</a>
-			<div>
-				<a href="https://www.strava.com/activities/'. $clubActivity['id'].'" style="text-decoration: none;">'.htmlentities($clubActivity['name']).'</a>
-			</div>
-		</div>';
+		$activitiesJsOutputRaw->content = $stravastat->parser->render('activities/activitiesMapItem.tpl', [
+			'clubActivity' => $clubActivity
+		]);
 		$activitiesJsOutputRaw->content = str_replace("\n", '', $activitiesJsOutputRaw->content);
 		$activitiesJsOutputRaw->lat = $clubActivity['start_latlng'][0];
 		$activitiesJsOutputRaw->lng = $clubActivity['start_latlng'][1];

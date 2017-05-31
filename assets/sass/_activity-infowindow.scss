@@ -1,0 +1,21 @@
+.activity-infowindow {
+    min-width: 200px;
+    overflow: hidden;
+    padding: 10px;
+    &__avatar {
+        &-wrapper {
+            display: inline-block;
+            float: left;
+            margin: 0 5px 0 0;
+        }
+        &-image {
+            border-radius: 50%;
+            height: 50px;
+            width: 50px;
+        }
+    }
+    &__title {
+        text-decoration: none;
+        &-wrapper {}
+    }
+}
