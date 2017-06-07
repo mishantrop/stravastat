@@ -1,6 +1,6 @@
 <tr>
 	<td data-value="{{ activity['athlete']['id'] }}">
-		<a class="activity__athlete-link" href="https://www.strava.com/athletes/{{ activity['athlete']['id'] }}">
+		<a class="activity__athlete-link" href="https://www.strava.com/athletes/{{ activity['athlete']['id'] }}" title="{{ activity['athlete']['firstname'] }} {{ activity['athlete']['lastname'] }}">
 			<img src="{{ activity['athlete']['profile'] }}" alt="" class="activity__athlete-avatar" />
 		</a>
 	</td>

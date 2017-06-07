@@ -186,7 +186,7 @@ try {
 		'output' => $medalsOutput,
 	]);
 
-	// Участники
+	// Athletes
 	$athletesOutput = '';
 	foreach ($clubMembers as $clubMember) {
 		$athletesOutput .= $stravastat->parser->render('athletes/athleteItem.tpl', [
@@ -202,6 +202,13 @@ try {
 	$activitiesOutput = '';
 	$activitiesJsOutput = '';
 	foreach ($clubActivities as $clubActivity) {
+		foreach ($clubMembers as $clubMember) {
+			if ($clubActivity['athlete']['id'] == $clubMember['id']) {
+				$clubActivity['athlete'] = $clubMember;
+				break;
+			}
+		}
+		
 		$activitiesOutput .= $stravastat->parser->render('activities/activitiesItem.tpl', [
 			'startDateTimestamp' => strtotime($clubActivity['start_date']),
 			'startDateDate' => date('d.m.Y H:i:s', strtotime($clubActivity['start_date'])),
