@@ -1,4 +1,4 @@
-![stravastat logo](https://raw.githubusercontent.com/mishantrop/quasiformes6/master/src/images/logo.png?v=2018-03-25 "stravastat logo")
+![stravastat logo](https://raw.githubusercontent.com/mishantrop/stravastat/master/assets/images/logo.png "stravastat logo")
 # StravaStat #
 
 # Requirements #
